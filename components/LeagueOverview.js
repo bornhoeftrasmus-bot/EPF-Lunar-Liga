@@ -189,15 +189,6 @@ function MatchBlock({
       )}
     </Link>
   );
-}) {
-  return (
-    <div className="calendar-match">
-      <div className="calendar-match-time">{formatTime(match.date)}</div>
-      <strong>{match.teamName}</strong>
-      <span>vs. {match.away}</span>
-      {match.division && <small>{match.division}</small>}
-    </div>
-  );
 }
 
 function MonthCalendar({ teams }) {

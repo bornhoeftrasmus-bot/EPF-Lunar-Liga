@@ -278,3 +278,10 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Mobil-agendaen har samme kliknavigation.
 - Kalenderens måned og filtre sendes med som returnTo, så tilbage-navigation kan bevares.
 - Synligt versionsmærke: EPF Liga v20.
+
+
+## Version 21 – build fix
+- Retter syntaksfejl i `components/LeagueOverview.js`.
+- Den gamle MatchBlock-dublet er fjernet.
+- Kalenderfunktionerne fra V20 er bevaret.
+- Synligt versionsmærke: EPF Liga v21.
