@@ -1691,3 +1691,37 @@ a.opponent-player:hover {
     font-size: 10px;
   }
 }
+
+
+/* V20 calendar links + venue */
+.calendar-match-link,
+.agenda-match-link {
+  text-decoration: none;
+}
+
+.calendar-match-link {
+  transition: transform .15s ease, background .15s ease;
+}
+
+.calendar-match-link:hover {
+  background: rgba(152,180,223,.30);
+  transform: translateY(-1px);
+}
+
+.calendar-venue {
+  margin-top: 2px;
+  color: var(--royal);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.agenda-match-link:hover {
+  border-color: var(--sky);
+  background: rgba(152,180,223,.13);
+}
+
+.focused-match-card {
+  border-color: var(--royal);
+  box-shadow: 0 0 0 3px rgba(42,62,145,.10);
+}

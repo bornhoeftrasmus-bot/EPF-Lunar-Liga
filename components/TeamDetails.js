@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 function formatDate(value) {
   if (!value) return { date: "Dato ikke angivet", time: "" };
@@ -79,8 +79,9 @@ function MatchDetails({ details }) {
   );
 }
 
-function MatchCard({ match, selectedTeam }) {
-  const [open, setOpen] = useState(false);
+function MatchCard({ match, selectedTeam, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const cardRef = useRef(null);
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -91,6 +92,38 @@ function MatchCard({ match, selectedTeam }) {
     match.home?.trim().toLowerCase() === selectedTeam.trim().toLowerCase();
   const isAway =
     match.away?.trim().toLowerCase() === selectedTeam.trim().toLowerCase();
+
+  useEffect(() => {
+    if (!defaultOpen) return;
+
+    const timer = setTimeout(() => {
+      cardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 150);
+
+    // Load details automatically when arriving from calendar.
+    if (!details && !loading) {
+      (async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+          const res = await fetch(`/api/match/${match.id}`);
+          if (!res.ok) throw new Error("Kunne ikke hente kampdetaljer");
+          setDetails(await res.json());
+        } catch (e) {
+          console.error(e);
+          setError("Kampdetaljerne kunne ikke hentes.");
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+
+    return () => clearTimeout(timer);
+  }, [defaultOpen]);
 
   async function toggleDetails() {
     const next = !open;
@@ -114,7 +147,10 @@ function MatchCard({ match, selectedTeam }) {
   }
 
   return (
-    <article className="match-card-wrap">
+    <article
+      ref={cardRef}
+      className={`match-card-wrap ${defaultOpen ? "focused-match-card" : ""}`}
+    >
       <div className="match-card">
         <div className="match-date">
           <strong>{when.date}</strong>
@@ -449,8 +485,14 @@ function Standings({ rows, selectedTeam }) {
   );
 }
 
-export default function TeamDetails({ data }) {
+export default function TeamDetails({ data, focusMatchId = "" }) {
   const [tab, setTab] = useState("matches");
+
+  useEffect(() => {
+    if (focusMatchId) {
+      setTab("matches");
+    }
+  }, [focusMatchId]);
 
   const matches = useMemo(() => {
     return [...data.matches].sort((a, b) => {
@@ -488,7 +530,15 @@ export default function TeamDetails({ data }) {
 
           <div className="matches-list">
             {matches.map((match) => (
-              <MatchCard key={match.id} match={match} selectedTeam={data.team.name} />
+              <MatchCard
+                key={match.id}
+                match={match}
+                selectedTeam={data.team.name}
+                defaultOpen={
+                  focusMatchId &&
+                  String(match.id) === String(focusMatchId)
+                }
+              />
             ))}
           </div>
 

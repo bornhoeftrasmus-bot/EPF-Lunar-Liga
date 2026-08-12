@@ -13,6 +13,11 @@ export default async function TeamPage({ params, searchParams }) {
       ? resolvedSearchParams.returnTo
       : "/";
 
+  const focusMatch =
+    typeof resolvedSearchParams?.focusMatch === "string"
+      ? resolvedSearchParams.focusMatch
+      : "";
+
   let data;
 
   try {
@@ -70,8 +75,8 @@ export default async function TeamPage({ params, searchParams }) {
         </div>
       </section>
 
-      <TeamDetails data={data} />
-      <div className="version-tag team-version">EPF Liga v19</div>
+      <TeamDetails data={data} focusMatchId={focusMatch} />
+      <div className="version-tag team-version">EPF Liga v20</div>
     </main>
   );
 }

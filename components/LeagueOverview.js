@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import TeamsExplorer from "@/components/TeamsExplorer";
 
 function parseDate(value) {
@@ -18,7 +19,11 @@ function buildHomeMatches(teams) {
   const matches = [];
 
   for (const team of teams) {
-    const candidates = [team.nextMatch, team.nextHomeMatch].filter(Boolean);
+    const candidates =
+      Array.isArray(team.upcomingHomeMatches) &&
+      team.upcomingHomeMatches.length
+        ? team.upcomingHomeMatches
+        : [team.nextHomeMatch].filter(Boolean);
 
     for (const match of candidates) {
       const date = parseDate(match.date);
@@ -26,10 +31,12 @@ function buildHomeMatches(teams) {
 
       if (!sameTeam(match.home, team.name)) continue;
 
-      const key = `${match.id || ""}|${team.id}|${date.toISOString()}|${match.home}|${match.away}`;
+      const key =
+        `${match.id || ""}|${team.id}|${date.toISOString()}|${match.home}|${match.away}`;
 
       matches.push({
         key,
+        matchId: match.id || "",
         teamId: team.id,
         teamName: team.name,
         league: team.league || "",
@@ -38,13 +45,17 @@ function buildHomeMatches(teams) {
         date,
         home: match.home,
         away: match.away,
-        location: match.location || team.homeCourt || "",
-        address: match.address || "",
+        location:
+          match.location ||
+          team.homeCourt ||
+          "Spillested ikke angivet",
+        address: match.address || ""
       });
     }
   }
 
   const unique = new Map();
+
   for (const match of matches) {
     unique.set(match.key, match);
   }
@@ -113,7 +124,72 @@ function getCalendarCells(activeMonth, matches) {
   return result;
 }
 
-function MatchBlock({ match }) {
+
+function buildMatchLink(match, activeMonth, leagueFilter, teamFilter) {
+  const calendarParams = new URLSearchParams();
+
+  calendarParams.set("view", "calendar");
+  calendarParams.set(
+    "month",
+    `${activeMonth.getFullYear()}-${String(activeMonth.getMonth() + 1).padStart(2, "0")}`
+  );
+
+  if (leagueFilter !== "all") {
+    calendarParams.set("calendarLeague", leagueFilter);
+  }
+
+  if (teamFilter !== "all") {
+    calendarParams.set("calendarTeam", teamFilter);
+  }
+
+  const returnTo = `/?${calendarParams.toString()}`;
+
+  const teamParams = new URLSearchParams();
+  teamParams.set("returnTo", returnTo);
+
+  if (match.matchId) {
+    teamParams.set("focusMatch", String(match.matchId));
+  }
+
+  return `/team/${match.teamId}?${teamParams.toString()}`;
+}
+
+function MatchBlock({
+  match,
+  activeMonth,
+  leagueFilter,
+  teamFilter
+}) {
+  const href = buildMatchLink(
+    match,
+    activeMonth,
+    leagueFilter,
+    teamFilter
+  );
+
+  return (
+    <Link
+      href={href}
+      className="calendar-match calendar-match-link"
+      title={`Åbn ${match.teamName} mod ${match.away}`}
+    >
+      <div className="calendar-match-time">
+        {formatTime(match.date)}
+      </div>
+
+      <strong>{match.teamName}</strong>
+      <span>vs. {match.away}</span>
+
+      <div className="calendar-venue">
+        ⌖ {match.location}
+      </div>
+
+      {match.division && (
+        <small>{match.division}</small>
+      )}
+    </Link>
+  );
+}) {
   return (
     <div className="calendar-match">
       <div className="calendar-match-time">{formatTime(match.date)}</div>
@@ -219,7 +295,13 @@ function MonthCalendar({ teams }) {
 
               <div className="calendar-day-matches">
                 {cell.matches.map((match) => (
-                  <MatchBlock key={match.key} match={match} />
+                  <MatchBlock
+                    key={match.key}
+                    match={match}
+                    activeMonth={activeMonth}
+                    leagueFilter={leagueFilter}
+                    teamFilter={teamFilter}
+                  />
                 ))}
               </div>
             </div>
@@ -230,7 +312,16 @@ function MonthCalendar({ teams }) {
       <div className="mobile-agenda">
         {monthMatches.length ? (
           monthMatches.map((match) => (
-            <article className="agenda-match" key={match.key}>
+            <Link
+              className="agenda-match agenda-match-link"
+              key={match.key}
+              href={buildMatchLink(
+                match,
+                activeMonth,
+                leagueFilter,
+                teamFilter
+              )}
+            >
               <div className="agenda-date">
                 <strong>{formatDate(match.date)}</strong>
                 <span>{formatTime(match.date)}</span>
@@ -239,9 +330,9 @@ function MonthCalendar({ teams }) {
               <div className="agenda-main">
                 <strong>{match.teamName} vs. {match.away}</strong>
                 <span>{match.division || match.league}</span>
-                {match.location && <small>⌖ {match.location}</small>}
+                <small>⌖ {match.location}</small>
               </div>
-            </article>
+            </Link>
           ))
         ) : (
           <div className="empty-state">

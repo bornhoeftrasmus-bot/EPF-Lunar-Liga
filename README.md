@@ -267,3 +267,14 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Filter på liga og EPF-hold.
 - Kamp viser tid, EPF-hold, modstander og række.
 - Synligt versionsmærke: EPF Liga v19.
+
+
+## Version 20 – kalendernavigation
+- Kalenderen bruger alle kommende EPF-hjemmekampe, ikke kun næste hjemmekamp.
+- Spillested vises direkte på hver kalenderkamp (fx Rocket Padel / Padel Court).
+- Kalenderkampen er klikbar.
+- Klik fører til det relevante EPF-hold og den konkrete kamp via focusMatch.
+- Holdsiden åbner automatisk kampfanen, scroller til kampen og folder kampdetaljerne ud.
+- Mobil-agendaen har samme kliknavigation.
+- Kalenderens måned og filtre sendes med som returnTo, så tilbage-navigation kan bevares.
+- Synligt versionsmærke: EPF Liga v20.
