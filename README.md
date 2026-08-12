@@ -313,3 +313,12 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Browseren opdaterer den aktuelle tid hvert minut, så siden behøver ikke genindlæses.
 - Filtre på liga og hold anvendes efter tidsfiltreringen.
 - Synligt versionsmærke: EPF Liga v24.
+
+
+## Version 25 – ryd gamle kampe væk
+- Kalender og Liste er nu et rent kommende-kampe-overblik.
+- Kampe med status `Spillet` skjules altid.
+- Kampe hvor Rankedin viser resultat skjules altid.
+- En kamp fjernes så snart dens planlagte starttid er passeret, også hvis Rankedin endnu ikke har indtastet resultat.
+- Tiden kontrolleres hvert minut i browseren.
+- Synligt versionsmærke: EPF Liga v25.

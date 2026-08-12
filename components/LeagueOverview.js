@@ -49,7 +49,11 @@ function buildHomeMatches(teams) {
           match.location ||
           team.homeCourt ||
           "Spillested ikke angivet",
-        address: match.address || ""
+        address: match.address || "",
+        status: match.status || "",
+        showResults: Boolean(match.showResults),
+        homeScore: match.homeScore ?? "",
+        awayScore: match.awayScore ?? ""
       });
     }
   }
@@ -319,10 +323,17 @@ function MonthCalendar({ teams }) {
 
   const filteredMatches = useMemo(() => {
     return allHomeMatches.filter((match) => {
-      const isUpcoming =
+      const validDate =
         match.date instanceof Date &&
-        !Number.isNaN(match.date.getTime()) &&
-        match.date.getTime() >= nowMs;
+        !Number.isNaN(match.date.getTime());
+
+      const kickoffStillAhead =
+        validDate &&
+        match.date.getTime() > nowMs;
+
+      const isPlayed =
+        match.status === "Spillet" ||
+        match.showResults === true;
 
       const leagueOk =
         leagueFilter === "all" ||
@@ -332,7 +343,18 @@ function MonthCalendar({ teams }) {
         teamFilter === "all" ||
         String(match.teamId) === String(teamFilter);
 
-      return isUpcoming && leagueOk && teamOk;
+      /*
+        Calendar is deliberately an upcoming-fixtures view:
+        - played/result matches are always hidden
+        - matches disappear as soon as scheduled kickoff passes
+        - this also handles matches where RankedIn has not entered a result yet
+      */
+      return (
+        kickoffStillAhead &&
+        !isPlayed &&
+        leagueOk &&
+        teamOk
+      );
     });
   }, [
     allHomeMatches,
@@ -371,7 +393,7 @@ function MonthCalendar({ teams }) {
     <section className="calendar-section">
       <div className="calendar-toolbar">
         <div>
-          <div className="eyebrow">Kommende EPF-hjemmekampe</div>
+          <div className="eyebrow">Kun kommende EPF-hjemmekampe</div>
           <h2>Kalender</h2>
         </div>
 
