@@ -229,3 +229,13 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Ren samlet pakke til nyt GitHub repository.
 - Synligt versionsmærke: EPF Liga v15.
 - Bygger på V14 med verificeret standings-mapping og Team ID fra participantUrl.
+
+
+## Version 16
+- Søgetekst, række-filter, liga-filter og sortering gemmes i URL'en.
+- Samme valg gemmes også i localStorage som fallback.
+- Scroll-position på holdoversigten gemmes i sessionStorage.
+- "Kampe & stilling" sender returnTo med til holdsiden.
+- "← Alle EPF-hold" fører tilbage til samme filtre, sortering og søgning.
+- Oversigten forsøger også at genskabe den seneste scroll-position.
+- Synligt versionsmærke: EPF Liga v16.

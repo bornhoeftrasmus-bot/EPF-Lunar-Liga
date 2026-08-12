@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 function cleanDivision(value) {
@@ -101,6 +101,94 @@ export default function TeamsExplorer({ initialTeams }) {
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [leagueFilter, setLeagueFilter] = useState("all");
   const [sortBy, setSortBy] = useState("team");
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load filters/sort/search from URL first, then localStorage as fallback.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const saved = JSON.parse(
+      localStorage.getItem("epfLeagueOverviewState") || "{}"
+    );
+
+    const nextQuery =
+      params.get("q") ?? saved.query ?? "";
+
+    const nextDivision =
+      params.get("division") ?? saved.divisionFilter ?? "all";
+
+    const nextLeague =
+      params.get("league") ?? saved.leagueFilter ?? "all";
+
+    const nextSort =
+      params.get("sort") ?? saved.sortBy ?? "team";
+
+    setQuery(nextQuery);
+    setDivisionFilter(nextDivision);
+    setLeagueFilter(nextLeague);
+    setSortBy(nextSort);
+    setHydrated(true);
+
+    const savedScroll = Number(
+      sessionStorage.getItem("epfLeagueOverviewScroll") || 0
+    );
+
+    if (savedScroll > 0) {
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: savedScroll,
+          behavior: "auto"
+        });
+      });
+    }
+  }, []);
+
+  // Keep URL + localStorage in sync whenever filters change.
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const params = new URLSearchParams();
+
+    if (query.trim()) params.set("q", query.trim());
+    if (divisionFilter !== "all") params.set("division", divisionFilter);
+    if (leagueFilter !== "all") params.set("league", leagueFilter);
+    if (sortBy !== "team") params.set("sort", sortBy);
+
+    const queryString = params.toString();
+    const nextUrl = queryString
+      ? `${window.location.pathname}?${queryString}`
+      : window.location.pathname;
+
+    window.history.replaceState({}, "", nextUrl);
+
+    localStorage.setItem(
+      "epfLeagueOverviewState",
+      JSON.stringify({
+        query,
+        divisionFilter,
+        leagueFilter,
+        sortBy
+      })
+    );
+  }, [query, divisionFilter, leagueFilter, sortBy, hydrated]);
+
+  // Remember the current scroll position on the overview page.
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const onScroll = () => {
+      sessionStorage.setItem(
+        "epfLeagueOverviewScroll",
+        String(window.scrollY)
+      );
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [hydrated]);
 
   const divisions = useMemo(() => {
     return [...new Set(initialTeams.map((t) => cleanDivision(t.division)).filter(Boolean))]
@@ -171,6 +259,20 @@ export default function TeamsExplorer({ initialTeams }) {
 
     return teams;
   }, [query, divisionFilter, leagueFilter, sortBy, initialTeams]);
+
+  const buildTeamUrl = (teamId) => {
+    const params = new URLSearchParams();
+
+    if (query.trim()) params.set("q", query.trim());
+    if (divisionFilter !== "all") params.set("division", divisionFilter);
+    if (leagueFilter !== "all") params.set("league", leagueFilter);
+    if (sortBy !== "team") params.set("sort", sortBy);
+
+    const returnQuery = params.toString();
+    const returnUrl = returnQuery ? `/?${returnQuery}` : "/";
+
+    return `/team/${teamId}?returnTo=${encodeURIComponent(returnUrl)}`;
+  };
 
   const resetFilters = () => {
     setQuery("");
@@ -304,7 +406,7 @@ export default function TeamsExplorer({ initialTeams }) {
                 <span />
               )}
 
-              <Link className="team-button" href={`/team/${team.id}`}>
+              <Link className="team-button" href={buildTeamUrl(team.id)}>
                 Kampe & stilling
                 <span>→</span>
               </Link>

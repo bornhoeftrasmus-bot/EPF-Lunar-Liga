@@ -5,8 +5,13 @@ import { getTeamDetails } from "@/lib/rankedin";
 
 export const revalidate = 60;
 
-export default async function TeamPage({ params }) {
+export default async function TeamPage({ params, searchParams }) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const returnTo =
+    typeof resolvedSearchParams?.returnTo === "string"
+      ? resolvedSearchParams.returnTo
+      : "/";
 
   let data;
 
@@ -19,7 +24,7 @@ export default async function TeamPage({ params }) {
 
   return (
     <main className="page-shell team-page">
-      <Link href="/" className="back-link">← Alle EPF-hold</Link>
+      <Link href={returnTo} className="back-link">← Alle EPF-hold</Link>
 
       <section className="team-hero">
         <div>
@@ -66,7 +71,7 @@ export default async function TeamPage({ params }) {
       </section>
 
       <TeamDetails data={data} />
-      <div className="version-tag team-version">EPF Liga v15</div>
+      <div className="version-tag team-version">EPF Liga v16</div>
     </main>
   );
 }
