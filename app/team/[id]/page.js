@@ -76,7 +76,7 @@ export default async function TeamPage({ params, searchParams }) {
       </section>
 
       <TeamDetails data={data} focusMatchId={focusMatch} />
-      <div className="version-tag team-version">EPF Liga v25</div>
+      <div className="version-tag team-version">EPF Liga v26</div>
     </main>
   );
 }

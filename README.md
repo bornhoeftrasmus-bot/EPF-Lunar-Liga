@@ -322,3 +322,16 @@ Stilling og kampe revalideres hvert 60. sekund.
 - En kamp fjernes så snart dens planlagte starttid er passeret, også hvis Rankedin endnu ikke har indtastet resultat.
 - Tiden kontrolleres hvert minut i browseren.
 - Synligt versionsmærke: EPF Liga v25.
+
+
+## Version 26 – Rankedin datoformat
+- Retter kalenderfejl for datoer som `14/08/2026 19:00`.
+- Rankedin sender både ISO-datoer og europæiske `DD/MM/YYYY HH:mm` datoer.
+- Begge formater parses nu eksplicit.
+- Rettelsen gælder:
+  - næste kamp på holdoversigten
+  - kommende hjemmekampe i kalenderen
+  - sortering af kommende kampe
+  - visning af dato/tid på holdsiden
+- EPF 8-kampe den 14/08 og 15/08 kan derfor nu indgå korrekt i kalenderen.
+- Synligt versionsmærke: EPF Liga v26.

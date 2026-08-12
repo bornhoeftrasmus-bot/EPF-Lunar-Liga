@@ -6,7 +6,35 @@ import TeamsExplorer from "@/components/TeamsExplorer";
 
 function parseDate(value) {
   if (!value) return null;
-  const d = new Date(value);
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  const raw = String(value).trim();
+
+  // RankedIn may return DD/MM/YYYY HH:mm.
+  const european = raw.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?$/
+  );
+
+  if (european) {
+    const [, day, month, year, hour = "0", minute = "0"] = european;
+
+    const d = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      0,
+      0
+    );
+
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(raw);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
