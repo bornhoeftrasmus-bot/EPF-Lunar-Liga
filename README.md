@@ -256,3 +256,14 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Hold beholdes fortsat, selv hvis Rankedin midlertidigt mangler liga-detaljer.
 - Et manglende liganavn vises som tomt og oprettes ikke som ekstra filtervalg.
 - Synligt versionsmærke: EPF Liga v18.
+
+
+## Version 19 – Kalender
+- Ny hovedfane: Hold | Kalender.
+- Kalender viser EPF's kommende hjemmekampe.
+- Desktop: rigtig månedskalender.
+- Mobil: agenda-visning.
+- Måned kan skiftes frem/tilbage.
+- Filter på liga og EPF-hold.
+- Kamp viser tid, EPF-hold, modstander og række.
+- Synligt versionsmærke: EPF Liga v19.

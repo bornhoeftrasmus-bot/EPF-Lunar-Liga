@@ -71,7 +71,7 @@ export default async function TeamPage({ params, searchParams }) {
       </section>
 
       <TeamDetails data={data} />
-      <div className="version-tag team-version">EPF Liga v18</div>
+      <div className="version-tag team-version">EPF Liga v19</div>
     </main>
   );
 }

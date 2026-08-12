@@ -1,4 +1,4 @@
-import TeamsExplorer from "@/components/TeamsExplorer";
+import LeagueOverview from "@/components/LeagueOverview";
 import { getOrganisationTeams } from "@/lib/rankedin";
 
 export const revalidate = 300;
@@ -29,13 +29,13 @@ export default async function HomePage() {
       {error ? (
         <div className="notice error">{error}</div>
       ) : (
-        <TeamsExplorer initialTeams={teams} />
+        <LeagueOverview teams={teams} />
       )}
 
       <footer className="footer">
         Data hentes automatisk fra Rankedin. Kun hold med Home Club
         “Esbjerg Padel Forening” vises.
-        <div className="version-tag">EPF Liga v18</div>
+        <div className="version-tag">EPF Liga v19</div>
       </footer>
     </main>
   );
