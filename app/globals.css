@@ -1725,3 +1725,36 @@ a.opponent-player:hover {
   border-color: var(--royal);
   box-shadow: 0 0 0 3px rgba(42,62,145,.10);
 }
+
+
+/* V22 calendar return position + today */
+.today-button {
+  width: auto !important;
+  padding: 0 12px;
+  color: #fff !important;
+  background: var(--royal) !important;
+  font-size: 10px;
+  letter-spacing: .04em;
+}
+
+.today-cell {
+  border-color: var(--royal);
+  background: rgba(152,180,223,.12);
+}
+
+.today-cell .calendar-day-number {
+  display: inline-grid;
+  place-items: center;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 5px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--royal);
+}
+
+.calendar-return-focus {
+  outline: 3px solid rgba(42,62,145,.32);
+  outline-offset: 2px;
+  transition: outline-color .5s ease;
+}

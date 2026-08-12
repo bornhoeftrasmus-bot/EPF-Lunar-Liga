@@ -285,3 +285,13 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Den gamle MatchBlock-dublet er fjernet.
 - Kalenderfunktionerne fra V20 er bevaret.
 - Synligt versionsmærke: EPF Liga v21.
+
+
+## Version 22 – kalenderposition og IDAG
+- Klik på en kalenderkamp gemmer måned, liga-filter, hold-filter og kampens placering.
+- "← Alle EPF-hold" vender tilbage til Kalender-fanen.
+- Kalenderen åbner samme måned og scroller tilbage til den kamp, der blev klikket på.
+- Den returnerede kamp markeres kort visuelt.
+- Ny IDAG-knap springer til indeværende måned og scroller til dagens dato.
+- Dagens dato markeres tydeligt i månedskalenderen.
+- Synligt versionsmærke: EPF Liga v22.

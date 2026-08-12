@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TeamsExplorer from "@/components/TeamsExplorer";
 
@@ -125,6 +125,11 @@ function getCalendarCells(activeMonth, matches) {
 }
 
 
+
+function calendarAnchor(match) {
+  return `calendar-match-${String(match.key).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
 function buildMatchLink(match, activeMonth, leagueFilter, teamFilter) {
   const calendarParams = new URLSearchParams();
 
@@ -142,7 +147,8 @@ function buildMatchLink(match, activeMonth, leagueFilter, teamFilter) {
     calendarParams.set("calendarTeam", teamFilter);
   }
 
-  const returnTo = `/?${calendarParams.toString()}`;
+  const anchor = calendarAnchor(match);
+  const returnTo = `/?${calendarParams.toString()}#${anchor}`;
 
   const teamParams = new URLSearchParams();
   teamParams.set("returnTo", returnTo);
@@ -169,6 +175,7 @@ function MatchBlock({
 
   return (
     <Link
+      id={calendarAnchor(match)}
       href={href}
       className="calendar-match calendar-match-link"
       title={`Åbn ${match.teamName} mod ${match.away}`}
@@ -203,6 +210,50 @@ function MonthCalendar({ teams }) {
   const [activeMonth, setActiveMonth] = useState(initialMonth);
   const [leagueFilter, setLeagueFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
+  const [calendarHydrated, setCalendarHydrated] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const monthParam = params.get("month");
+    if (/^\d{4}-\d{2}$/.test(monthParam || "")) {
+      const [year, month] = monthParam.split("-").map(Number);
+      setActiveMonth(new Date(year, month - 1, 1));
+    }
+
+    setLeagueFilter(params.get("calendarLeague") || "all");
+    setTeamFilter(params.get("calendarTeam") || "all");
+    setCalendarHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!calendarHydrated) return;
+
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const id = decodeURIComponent(hash.slice(1));
+
+    const timer = setTimeout(() => {
+      const element =
+        document.getElementById(id) ||
+        document.getElementById(`${id}-mobile`);
+
+      element?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      if (element) {
+        element.classList.add("calendar-return-focus");
+        setTimeout(() => {
+          element.classList.remove("calendar-return-focus");
+        }, 1600);
+      }
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [calendarHydrated, activeMonth, leagueFilter, teamFilter]);
 
   const leagues = useMemo(() => {
     return [...new Set(teams.map(t => t.league).filter(Boolean))]
@@ -232,6 +283,22 @@ function MonthCalendar({ teams }) {
     setActiveMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
+  const goToToday = () => {
+    const today = new Date();
+    setActiveMonth(
+      new Date(today.getFullYear(), today.getMonth(), 1)
+    );
+
+    setTimeout(() => {
+      document
+        .getElementById("calendar-today")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+    }, 120);
+  };
+
   return (
     <section className="calendar-section">
       <div className="calendar-toolbar">
@@ -244,6 +311,12 @@ function MonthCalendar({ teams }) {
           <button onClick={() => changeMonth(-1)}>←</button>
           <strong>{formatMonth(activeMonth)}</strong>
           <button onClick={() => changeMonth(1)}>→</button>
+          <button
+            className="today-button"
+            onClick={goToToday}
+          >
+            IDAG
+          </button>
         </div>
       </div>
 
@@ -277,10 +350,18 @@ function MonthCalendar({ teams }) {
         </div>
 
         <div className="calendar-grid">
-          {cells.map((cell) => (
+          {cells.map((cell) => {
+            const now = new Date();
+            const isToday =
+              cell.date.getFullYear() === now.getFullYear() &&
+              cell.date.getMonth() === now.getMonth() &&
+              cell.date.getDate() === now.getDate();
+
+            return (
             <div
+              id={isToday ? "calendar-today" : undefined}
               key={cell.date.toISOString()}
-              className={`calendar-cell ${cell.inMonth ? "" : "outside-month"}`}
+              className={`calendar-cell ${cell.inMonth ? "" : "outside-month"} ${isToday ? "today-cell" : ""}`}
             >
               <div className="calendar-day-number">{cell.date.getDate()}</div>
 
@@ -296,7 +377,8 @@ function MonthCalendar({ teams }) {
                 ))}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -304,6 +386,7 @@ function MonthCalendar({ teams }) {
         {monthMatches.length ? (
           monthMatches.map((match) => (
             <Link
+              id={`${calendarAnchor(match)}-mobile`}
               className="agenda-match agenda-match-link"
               key={match.key}
               href={buildMatchLink(
@@ -338,6 +421,35 @@ function MonthCalendar({ teams }) {
 
 export default function LeagueOverview({ teams }) {
   const [tab, setTab] = useState("teams");
+  const [tabHydrated, setTabHydrated] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("view") === "calendar") {
+      setTab("calendar");
+    }
+
+    setTabHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!tabHydrated) return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (tab === "calendar") {
+      params.set("view", "calendar");
+    } else {
+      params.delete("view");
+    }
+
+    const query = params.toString();
+    const nextUrl =
+      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash || ""}`;
+
+    window.history.replaceState({}, "", nextUrl);
+  }, [tab, tabHydrated]);
 
   return (
     <>
