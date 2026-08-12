@@ -35,7 +35,7 @@ export default async function HomePage() {
       <footer className="footer">
         Data hentes automatisk fra Rankedin. Kun hold med Home Club
         “Esbjerg Padel Forening” vises.
-        <div className="version-tag">EPF Liga v17</div>
+        <div className="version-tag">EPF Liga v18</div>
       </footer>
     </main>
   );

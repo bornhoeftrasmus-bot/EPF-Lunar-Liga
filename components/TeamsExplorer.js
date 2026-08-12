@@ -374,7 +374,7 @@ export default function TeamsExplorer({ initialTeams }) {
             <div className="team-card-top">
               <div>
                 <div className="league-label">
-                  {team.league || "Liga"}
+                  {team.league || ""}
                 </div>
                 <h2>{team.name}</h2>
 

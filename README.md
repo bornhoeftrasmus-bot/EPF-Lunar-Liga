@@ -249,3 +249,10 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Home Club-reglen anvendes fortsat, når homepage-data er tilgængelig.
 - Nye/ændrede hold kommer fortsat automatisk ind via organisationens aktive holdliste.
 - Synligt versionsmærke: EPF Liga v17.
+
+
+## Version 18
+- Fjerner den kunstige fallback-liga "Liga".
+- Hold beholdes fortsat, selv hvis Rankedin midlertidigt mangler liga-detaljer.
+- Et manglende liganavn vises som tomt og oprettes ikke som ekstra filtervalg.
+- Synligt versionsmærke: EPF Liga v18.
