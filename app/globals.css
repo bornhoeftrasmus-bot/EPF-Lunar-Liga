@@ -1758,3 +1758,120 @@ a.opponent-player:hover {
   outline-offset: 2px;
   transition: outline-color .5s ease;
 }
+
+
+/* V23 calendar/list switcher */
+.calendar-view-switcher {
+  display: inline-flex;
+  gap: 5px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(214,204,187,.38);
+}
+
+.calendar-view-switcher button {
+  min-width: 105px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--charcoal);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.calendar-view-switcher button.active {
+  color: #fff;
+  background: var(--royal);
+}
+
+.hidden-calendar-view {
+  display: none !important;
+}
+
+.calendar-list-view {
+  display: grid;
+  gap: 8px;
+}
+
+.calendar-list-item {
+  display: grid;
+  grid-template-columns: 135px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(44,41,42,.10);
+  border-radius: 13px;
+  color: var(--charcoal);
+  background: rgba(240,236,229,.50);
+  text-decoration: none;
+  transition: .15s ease;
+}
+
+.calendar-list-item:hover {
+  border-color: var(--sky);
+  background: rgba(152,180,223,.13);
+  transform: translateY(-1px);
+}
+
+.calendar-list-date {
+  display: grid;
+  gap: 3px;
+}
+
+.calendar-list-date strong {
+  color: var(--royal);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.calendar-list-date span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.calendar-list-match {
+  display: grid;
+  gap: 3px;
+}
+
+.calendar-list-match strong {
+  font-size: 13px;
+}
+
+.calendar-list-match span,
+.calendar-list-match small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.calendar-list-arrow {
+  color: var(--royal);
+  font-size: 18px;
+  font-weight: 900;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .calendar-view-switcher {
+    width: 100%;
+  }
+
+  .calendar-view-switcher button {
+    flex: 1;
+  }
+
+  .calendar-list-item {
+    grid-template-columns: 95px 1fr 24px;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  /* On mobile, the list view uses the new list layout.
+     The old agenda remains the fallback when Calendar is selected. */
+  .calendar-list-view {
+    display: grid;
+  }
+}

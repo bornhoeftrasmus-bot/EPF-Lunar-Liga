@@ -295,3 +295,13 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Ny IDAG-knap springer til indeværende måned og scroller til dagens dato.
 - Dagens dato markeres tydeligt i månedskalenderen.
 - Synligt versionsmærke: EPF Liga v22.
+
+
+## Version 23 – Kalender / Liste
+- Kalender-fanen har nu en visningsvælger: Kalender | Liste.
+- Liste viser alle kommende EPF-hjemmekampe kronologisk.
+- Hver listepost viser dato, tid, EPF-hold, modstander, række/liga og spillested.
+- Listeposter er klikbare og åbner den konkrete kamp på holdsiden.
+- Valget mellem Kalender og Liste gemmes i URL og localStorage.
+- Tilbage-navigation bevarer den valgte kalender-visning.
+- Synligt versionsmærke: EPF Liga v23.

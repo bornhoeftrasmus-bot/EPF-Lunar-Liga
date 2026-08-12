@@ -130,10 +130,20 @@ function calendarAnchor(match) {
   return `calendar-match-${String(match.key).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
 
-function buildMatchLink(match, activeMonth, leagueFilter, teamFilter) {
+function buildMatchLink(
+  match,
+  activeMonth,
+  leagueFilter,
+  teamFilter,
+  displayMode
+) {
   const calendarParams = new URLSearchParams();
 
   calendarParams.set("view", "calendar");
+  calendarParams.set(
+    "calendarView",
+    displayMode === "list" ? "list" : "calendar"
+  );
   calendarParams.set(
     "month",
     `${activeMonth.getFullYear()}-${String(activeMonth.getMonth() + 1).padStart(2, "0")}`
@@ -164,13 +174,15 @@ function MatchBlock({
   match,
   activeMonth,
   leagueFilter,
-  teamFilter
+  teamFilter,
+  displayMode
 }) {
   const href = buildMatchLink(
     match,
     activeMonth,
     leagueFilter,
-    teamFilter
+    teamFilter,
+    displayMode
   );
 
   return (
@@ -210,6 +222,7 @@ function MonthCalendar({ teams }) {
   const [activeMonth, setActiveMonth] = useState(initialMonth);
   const [leagueFilter, setLeagueFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
+  const [displayMode, setDisplayMode] = useState("calendar");
   const [calendarHydrated, setCalendarHydrated] = useState(false);
 
   useEffect(() => {
@@ -223,8 +236,35 @@ function MonthCalendar({ teams }) {
 
     setLeagueFilter(params.get("calendarLeague") || "all");
     setTeamFilter(params.get("calendarTeam") || "all");
+
+    const savedView =
+      params.get("calendarView") ||
+      localStorage.getItem("epfCalendarView") ||
+      "calendar";
+
+    setDisplayMode(
+      savedView === "list" ? "list" : "calendar"
+    );
+
     setCalendarHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!calendarHydrated) return;
+
+    localStorage.setItem("epfCalendarView", displayMode);
+
+    const params = new URLSearchParams(window.location.search);
+    params.set("view", "calendar");
+    params.set("calendarView", displayMode);
+
+    const query = params.toString();
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${query}${window.location.hash || ""}`
+    );
+  }, [displayMode, calendarHydrated]);
 
   useEffect(() => {
     if (!calendarHydrated) return;
@@ -320,6 +360,22 @@ function MonthCalendar({ teams }) {
         </div>
       </div>
 
+      <div className="calendar-view-switcher">
+        <button
+          className={displayMode === "calendar" ? "active" : ""}
+          onClick={() => setDisplayMode("calendar")}
+        >
+          Kalender
+        </button>
+
+        <button
+          className={displayMode === "list" ? "active" : ""}
+          onClick={() => setDisplayMode("list")}
+        >
+          Liste
+        </button>
+      </div>
+
       <div className="calendar-filters">
         <div className="filter-field">
           <label> Liga </label>
@@ -342,7 +398,56 @@ function MonthCalendar({ teams }) {
         </div>
       </div>
 
-      <div className="desktop-calendar">
+      {displayMode === "list" && (
+        <div className="calendar-list-view">
+          {filteredMatches.length ? (
+            filteredMatches.map((match) => (
+              <Link
+                id={`${calendarAnchor(match)}-list`}
+                key={match.key}
+                href={buildMatchLink(
+                  match,
+                  activeMonth,
+                  leagueFilter,
+                  teamFilter,
+                  displayMode
+                )}
+                className="calendar-list-item"
+              >
+                <div className="calendar-list-date">
+                  <strong>{formatDate(match.date)}</strong>
+                  <span>{formatTime(match.date)}</span>
+                </div>
+
+                <div className="calendar-list-match">
+                  <strong>
+                    {match.teamName} vs. {match.away}
+                  </strong>
+
+                  <span>
+                    {match.division || match.league}
+                  </span>
+
+                  <small>
+                    ⌖ {match.location}
+                  </small>
+                </div>
+
+                <div className="calendar-list-arrow">
+                  →
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="empty-state">
+              <strong>Ingen kommende hjemmekampe</strong>
+              <p>Prøv et andet filter.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className={`desktop-calendar ${displayMode === "list" ? "hidden-calendar-view" : ""}`}>
         <div className="calendar-weekdays">
           {["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"].map((day) => (
             <div key={day}>{day}</div>
@@ -373,6 +478,7 @@ function MonthCalendar({ teams }) {
                     activeMonth={activeMonth}
                     leagueFilter={leagueFilter}
                     teamFilter={teamFilter}
+                    displayMode={displayMode}
                   />
                 ))}
               </div>
@@ -393,7 +499,8 @@ function MonthCalendar({ teams }) {
                 match,
                 activeMonth,
                 leagueFilter,
-                teamFilter
+                teamFilter,
+                displayMode
               )}
             >
               <div className="agenda-date">
