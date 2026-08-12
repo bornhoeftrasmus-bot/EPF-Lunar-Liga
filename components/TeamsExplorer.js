@@ -365,7 +365,7 @@ export default function TeamsExplorer({ initialTeams }) {
 
       <div className="all-teams-count">
         <strong>{initialTeams.length}</strong>
-        <span>aktive EPF-hold fundet på tværs af ligaer</span>
+        <span>aktive EPF-hold fundet i Rankedin</span>
       </div>
 
       <section className="teams-grid">

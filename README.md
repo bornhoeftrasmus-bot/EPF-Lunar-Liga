@@ -239,3 +239,13 @@ Stilling og kampe revalideres hvert 60. sekund.
 - "← Alle EPF-hold" fører tilbage til samme filtre, sortering og søgning.
 - Oversigten forsøger også at genskabe den seneste scroll-position.
 - Synligt versionsmærke: EPF Liga v16.
+
+
+## Version 17 – hold må aldrig forsvinde
+- Organisationslisten er nu master-listen for holdoversigten.
+- Homepage-data og kampdata hentes uafhængigt.
+- Hvis GetTeamMatchesAsync fejler, forsvinder holdet IKKE længere.
+- Hvis team homepage midlertidigt fejler, beholdes holdet fra EPF's organisationsoversigt.
+- Home Club-reglen anvendes fortsat, når homepage-data er tilgængelig.
+- Nye/ændrede hold kommer fortsat automatisk ind via organisationens aktive holdliste.
+- Synligt versionsmærke: EPF Liga v17.
