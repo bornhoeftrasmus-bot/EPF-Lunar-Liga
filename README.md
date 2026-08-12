@@ -305,3 +305,11 @@ Stilling og kampe revalideres hvert 60. sekund.
 - Valget mellem Kalender og Liste gemmes i URL og localStorage.
 - Tilbage-navigation bevarer den valgte kalender-visning.
 - Synligt versionsmærke: EPF Liga v23.
+
+
+## Version 24 – kun kommende kampe
+- Kalender og Liste viser kun hjemmekampe, hvis starttidspunktet endnu ikke er passeret.
+- Kampene fjernes automatisk fra visningen, når deres planlagte tidspunkt passeres.
+- Browseren opdaterer den aktuelle tid hvert minut, så siden behøver ikke genindlæses.
+- Filtre på liga og hold anvendes efter tidsfiltreringen.
+- Synligt versionsmærke: EPF Liga v24.

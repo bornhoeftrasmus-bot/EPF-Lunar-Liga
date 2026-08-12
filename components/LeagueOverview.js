@@ -224,6 +224,18 @@ function MonthCalendar({ teams }) {
   const [teamFilter, setTeamFilter] = useState("all");
   const [displayMode, setDisplayMode] = useState("calendar");
   const [calendarHydrated, setCalendarHydrated] = useState(false);
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  // Keep upcoming matches current even when the page stays open.
+  // A match disappears automatically once its scheduled start time has passed.
+  useEffect(() => {
+    const updateNow = () => setNowMs(Date.now());
+
+    updateNow();
+    const timer = window.setInterval(updateNow, 60 * 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -307,11 +319,27 @@ function MonthCalendar({ teams }) {
 
   const filteredMatches = useMemo(() => {
     return allHomeMatches.filter((match) => {
-      const leagueOk = leagueFilter === "all" || match.league === leagueFilter;
-      const teamOk = teamFilter === "all" || String(match.teamId) === String(teamFilter);
-      return leagueOk && teamOk;
+      const isUpcoming =
+        match.date instanceof Date &&
+        !Number.isNaN(match.date.getTime()) &&
+        match.date.getTime() >= nowMs;
+
+      const leagueOk =
+        leagueFilter === "all" ||
+        match.league === leagueFilter;
+
+      const teamOk =
+        teamFilter === "all" ||
+        String(match.teamId) === String(teamFilter);
+
+      return isUpcoming && leagueOk && teamOk;
     });
-  }, [allHomeMatches, leagueFilter, teamFilter]);
+  }, [
+    allHomeMatches,
+    leagueFilter,
+    teamFilter,
+    nowMs
+  ]);
 
   const monthMatches = filteredMatches.filter(
     (m) => monthKey(m.date) === monthKey(activeMonth)
@@ -343,7 +371,7 @@ function MonthCalendar({ teams }) {
     <section className="calendar-section">
       <div className="calendar-toolbar">
         <div>
-          <div className="eyebrow">EPF hjemmekampe</div>
+          <div className="eyebrow">Kommende EPF-hjemmekampe</div>
           <h2>Kalender</h2>
         </div>
 
@@ -441,7 +469,7 @@ function MonthCalendar({ teams }) {
           ) : (
             <div className="empty-state">
               <strong>Ingen kommende hjemmekampe</strong>
-              <p>Prøv et andet filter.</p>
+              <p>Der er ingen fremtidige kampe med de valgte filtre.</p>
             </div>
           )}
         </div>
