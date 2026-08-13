@@ -1,16 +1,15 @@
 :root {
-  --deadline-navy: #2A3E91;
-  --deadline-ink: #2C292A;
-  --deadline-blue: #2A3E91;
-  --deadline-muted: #6F6A68;
-  --deadline-line: #E1DDD7;
+  --deadline-navy: #0A1F3C;
+  --deadline-light-blue: #AFC4D6;
+  --deadline-ink: #0A1F3C;
+  --deadline-muted: #66788A;
+  --deadline-line: rgba(175, 196, 214, 0.62);
   --deadline-red: #C62828;
-  --deadline-red-soft: #FFF4F4;
+  --deadline-red-soft: #FFF9F9;
   --deadline-amber: #A86100;
-  --deadline-amber-soft: #FFF8EA;
+  --deadline-amber-soft: #FFFCF6;
 }
 
-/* Sørg for at iframe-siden ikke arver den beige EPF-sidebaggrund */
 html,
 body {
   background: transparent !important;
@@ -36,7 +35,7 @@ body {
   border: 1px solid var(--deadline-line);
   border-radius: 22px;
   background: #fff;
-  box-shadow: 0 14px 38px rgba(42, 62, 145, 0.10);
+  box-shadow: 0 14px 38px rgba(10, 31, 60, 0.08);
 }
 
 .deadlineTopbar {
@@ -44,7 +43,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 16px 20px;
+  padding: 17px 20px;
   background: #fff;
   border-bottom: 1px solid var(--deadline-line);
 }
@@ -52,29 +51,13 @@ body {
 .deadlineTitleWrap {
   display: flex;
   align-items: center;
-  gap: 12px;
   min-width: 0;
-}
-
-.deadlineBrand {
-  display: grid;
-  place-items: center;
-  flex: 0 0 42px;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--deadline-navy);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .08em;
-  box-shadow: 0 6px 16px rgba(42, 62, 145, 0.2);
 }
 
 .deadlineWidget .eyebrow {
   display: block;
-  margin: 0 0 2px;
-  color: var(--deadline-blue);
+  margin: 0 0 3px;
+  color: var(--deadline-navy);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: .13em;
@@ -93,7 +76,7 @@ body {
   flex: 0 0 auto;
   padding: 7px 11px;
   border-radius: 999px;
-  background: #EEF0FA;
+  background: rgba(175, 196, 214, 0.28);
   color: var(--deadline-navy);
   font-size: 12px;
   font-weight: 800;
@@ -105,18 +88,16 @@ body {
   align-items: center;
   gap: 22px;
   padding: 24px;
-  border-left: 5px solid var(--deadline-blue);
+  border-left: 5px solid var(--deadline-navy);
   background: #fff;
 }
 
 .deadlinePrimary.soon {
   border-left-color: #D98B00;
-  background: #fff;
 }
 
 .deadlinePrimary.urgent {
   border-left-color: var(--deadline-red);
-  background: #fff;
 }
 
 .deadlineDateCard {
@@ -125,19 +106,19 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(42, 62, 145, 0.08);
+  border: 1px solid var(--deadline-line);
   border-radius: 17px;
   background: #fff;
-  box-shadow: 0 8px 22px rgba(42, 62, 145, 0.10);
+  box-shadow: 0 8px 22px rgba(10, 31, 60, 0.08);
 }
 
 .deadlinePrimary.urgent .deadlineDateCard {
-  background: #FFF9F9;
+  background: var(--deadline-red-soft);
   border-color: #F1D9D9;
 }
 
 .deadlinePrimary.soon .deadlineDateCard {
-  background: #FFFCF6;
+  background: var(--deadline-amber-soft);
   border-color: #F0E4CA;
 }
 
@@ -150,7 +131,7 @@ body {
 
 .deadlineDateCard span {
   margin-top: 6px;
-  color: var(--deadline-blue);
+  color: var(--deadline-navy);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: .13em;
@@ -175,7 +156,7 @@ body {
   align-items: center;
   gap: 7px;
   margin-bottom: 7px;
-  color: var(--deadline-blue);
+  color: var(--deadline-navy);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: .1em;
@@ -219,7 +200,7 @@ body {
 
 .deadlineNextLabel {
   padding: 13px 20px 7px;
-  color: #85817D;
+  color: #7C8D9C;
   font-size: 9px;
   font-weight: 900;
   letter-spacing: .14em;
@@ -231,19 +212,19 @@ body {
   align-items: center;
   gap: 16px;
   padding: 13px 20px;
-  border-top: 1px solid #EEEAE4;
+  border-top: 1px solid var(--deadline-line);
   background: #fff;
 }
 
 .deadlineNextDate {
-  color: var(--deadline-blue);
+  color: var(--deadline-navy);
   font-size: 13px;
   font-weight: 900;
   white-space: nowrap;
 }
 
 .deadlineNextRow span {
-  color: #4F4B48;
+  color: #33485C;
   font-size: 13px;
   line-height: 1.42;
 }
@@ -259,7 +240,7 @@ body {
 }
 
 .deadlineFooter span {
-  color: #918C87;
+  color: #7C8D9C;
   font-size: 11px;
 }
 
@@ -272,7 +253,7 @@ body {
 }
 
 .deadlineFooter a b {
-  color: var(--deadline-blue);
+  color: var(--deadline-navy);
   font-size: 14px;
 }
 
@@ -294,25 +275,12 @@ body {
 @media (max-width: 600px) {
   .deadlineWidget {
     border-radius: 16px;
-    box-shadow: 0 7px 20px rgba(42, 62, 145, 0.08);
+    box-shadow: 0 7px 20px rgba(10, 31, 60, 0.07);
   }
 
   .deadlineTopbar {
-    padding: 11px 13px;
+    padding: 12px 13px;
     background: #fff;
-  }
-
-  .deadlineTitleWrap {
-    gap: 10px;
-  }
-
-  .deadlineBrand {
-    flex-basis: 34px;
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    font-size: 9px;
-    box-shadow: none;
   }
 
   .deadlineWidget .eyebrow {
@@ -333,18 +301,16 @@ body {
     gap: 12px;
     padding: 13px;
     border-left: 0;
-    border-top: 4px solid var(--deadline-blue);
+    border-top: 4px solid var(--deadline-navy);
     background: #fff;
   }
 
   .deadlinePrimary.soon {
     border-top-color: #D98B00;
-    background: #fff;
   }
 
   .deadlinePrimary.urgent {
     border-top-color: var(--deadline-red);
-    background: #fff;
   }
 
   .deadlineDateCard {
