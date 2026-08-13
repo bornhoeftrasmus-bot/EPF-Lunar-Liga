@@ -52,6 +52,24 @@ function parseMatchDate(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function hasExplicitMatchTime(value) {
+  if (!value) return false;
+
+  const raw = String(value).trim();
+  const european = raw.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?$/
+  );
+
+  if (european) {
+    return Boolean(european[4]);
+  }
+
+  const isoTime = raw.match(/[T ](\d{1,2}):(\d{2})/);
+  if (!isoTime) return false;
+
+  return !(isoTime[1] === "00" && isoTime[2] === "00");
+}
+
 function sameTeam(a, b) {
   return String(a || "").trim().toLowerCase() ===
     String(b || "").trim().toLowerCase();
@@ -172,6 +190,7 @@ function normalizeWidgetMatch(match, team, index) {
     opponent: isHome ? away : home,
     isHome,
     date,
+    hasTime: hasExplicitMatchTime(rawDate),
     showResults,
     location:
       getValue(
@@ -565,7 +584,7 @@ function MatchesWidget({ matches, error }) {
                 >
                   <div className="epfMatchDate">
                     <strong>{formatWidgetDate(match.date)}</strong>
-                    <span>{formatWidgetTime(match.date)}</span>
+                    <span>{match.hasTime ? formatWidgetTime(match.date) : "afventer"}</span>
                   </div>
 
                   <div className="epfMatchMain">
