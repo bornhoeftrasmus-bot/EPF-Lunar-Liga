@@ -2,7 +2,6 @@
   --deadline-navy: #2A3E91;
   --deadline-ink: #2C292A;
   --deadline-blue: #2A3E91;
-  --deadline-soft: #F0ECE5;
   --deadline-muted: #6F6A68;
   --deadline-line: #E1DDD7;
   --deadline-red: #C62828;
@@ -271,23 +270,34 @@
 
 @media (max-width: 600px) {
   .deadlineWidget {
-    border-radius: 18px;
-    box-shadow: 0 9px 24px rgba(42, 62, 145, 0.09);
+    border-radius: 16px;
+    box-shadow: 0 7px 20px rgba(42, 62, 145, 0.08);
   }
 
   .deadlineTopbar {
-    padding: 13px 14px;
+    padding: 11px 13px;
+  }
+
+  .deadlineTitleWrap {
+    gap: 10px;
   }
 
   .deadlineBrand {
-    flex-basis: 38px;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    font-size: 9px;
+    box-shadow: none;
+  }
+
+  .deadlineWidget .eyebrow {
+    font-size: 8.5px;
+    letter-spacing: .12em;
   }
 
   .deadlineWidget h1 {
-    font-size: 17px;
+    font-size: 15px;
   }
 
   .season {
@@ -295,10 +305,11 @@
   }
 
   .deadlinePrimary {
-    display: block;
-    padding: 16px;
-    border-left-width: 0;
-    border-top: 5px solid var(--deadline-blue);
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 12px;
+    padding: 13px;
+    border-left: 0;
+    border-top: 4px solid var(--deadline-blue);
   }
 
   .deadlinePrimary.soon {
@@ -310,101 +321,103 @@
   }
 
   .deadlineDateCard {
-    width: 100%;
-    min-height: 0;
-    margin-bottom: 14px;
-    padding: 12px 14px;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 8px;
-    border-radius: 14px;
-    box-shadow: 0 5px 14px rgba(42, 62, 145, 0.08);
+    width: 62px;
+    min-height: 62px;
+    border-radius: 13px;
+    box-shadow: none;
   }
 
   .deadlineDateCard strong {
-    font-size: 28px;
-    line-height: 1;
+    font-size: 25px;
+    line-height: .95;
   }
 
   .deadlineDateCard span {
-    margin: 2px 0 0;
-    font-size: 12px;
-  }
-
-  .deadlineStatus {
-    margin-bottom: 6px;
+    margin-top: 4px;
     font-size: 9px;
   }
 
+  .deadlineStatus {
+    gap: 5px;
+    margin-bottom: 4px;
+    font-size: 8px;
+    letter-spacing: .08em;
+  }
+
+  .deadlineStatus i {
+    width: 6px;
+    height: 6px;
+  }
+
   .deadlineMainCopy h2 {
-    font-size: 17px;
-    line-height: 1.34;
+    margin-bottom: 0;
+    font-size: 14.5px;
+    line-height: 1.28;
   }
 
   .deadlineMainCopy p {
-    font-size: 12px;
+    display: none;
   }
 
   .deadlineNextLabel {
-    padding: 12px 15px 7px;
+    padding: 9px 13px 5px;
+    font-size: 8px;
   }
 
   .deadlineNextRow {
-    grid-template-columns: 72px minmax(0, 1fr);
-    gap: 10px;
-    padding: 12px 15px;
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px 13px;
   }
 
   .deadlineNextDate {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .deadlineNextRow span {
-    font-size: 12px;
-    line-height: 1.38;
+    font-size: 11px;
+    line-height: 1.32;
   }
 
   .deadlineFooter {
     display: block;
-    padding: 12px 15px 14px;
+    padding: 10px 13px 12px;
   }
 
   .deadlineFooter span {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 10.5px;
+    display: none;
   }
 
   .deadlineFooter a {
     display: flex;
     width: 100%;
-    min-height: 44px;
+    min-height: 40px;
     align-items: center;
     justify-content: center;
-    padding: 0 14px;
-    border-radius: 11px;
+    padding: 0 12px;
+    border-radius: 10px;
     background: var(--deadline-navy);
     color: #fff;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .deadlineFooter a b {
-    margin-left: 5px;
+    margin-left: 4px;
     color: #fff;
   }
 
   .emptyWidget {
     display: block;
-    padding: 18px;
+    padding: 16px;
   }
 
   .allDatesButton {
     display: flex;
-    min-height: 44px;
+    min-height: 40px;
     align-items: center;
     justify-content: center;
-    margin-top: 16px;
-    border-radius: 11px;
+    margin-top: 14px;
+    border-radius: 10px;
     background: var(--deadline-navy);
     color: #fff;
   }
@@ -412,24 +425,30 @@
 
 @media (max-width: 370px) {
   .deadlineTopbar {
-    padding-inline: 12px;
+    padding-inline: 11px;
   }
 
   .deadlinePrimary {
-    padding: 14px 12px;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .deadlineDateCard {
+    width: 56px;
+    min-height: 56px;
+  }
+
+  .deadlineDateCard strong {
+    font-size: 23px;
   }
 
   .deadlineMainCopy h2 {
-    font-size: 16px;
+    font-size: 13.5px;
   }
 
   .deadlineNextRow {
-    display: block;
-    padding: 12px;
-  }
-
-  .deadlineNextDate {
-    display: block;
-    margin-bottom: 4px;
+    grid-template-columns: 60px minmax(0, 1fr);
+    padding: 9px 11px;
   }
 }
