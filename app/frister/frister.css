@@ -10,6 +10,17 @@
   --deadline-amber-soft: #FFF8EA;
 }
 
+/* Sørg for at iframe-siden ikke arver den beige EPF-sidebaggrund */
+html,
+body {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+body {
+  margin: 0;
+}
+
 .deadlineFrame {
   width: 100%;
   margin: 0;
@@ -34,7 +45,7 @@
   justify-content: space-between;
   gap: 18px;
   padding: 16px 20px;
-  background: linear-gradient(180deg, #fff, #FBFAF8);
+  background: #fff;
   border-bottom: 1px solid var(--deadline-line);
 }
 
@@ -95,17 +106,17 @@
   gap: 22px;
   padding: 24px;
   border-left: 5px solid var(--deadline-blue);
-  background: linear-gradient(135deg, #F6F7FC, #fff);
+  background: #fff;
 }
 
 .deadlinePrimary.soon {
   border-left-color: #D98B00;
-  background: linear-gradient(135deg, var(--deadline-amber-soft), #fff);
+  background: #fff;
 }
 
 .deadlinePrimary.urgent {
   border-left-color: var(--deadline-red);
-  background: linear-gradient(135deg, var(--deadline-red-soft), #fff);
+  background: #fff;
 }
 
 .deadlineDateCard {
@@ -118,6 +129,16 @@
   border-radius: 17px;
   background: #fff;
   box-shadow: 0 8px 22px rgba(42, 62, 145, 0.10);
+}
+
+.deadlinePrimary.urgent .deadlineDateCard {
+  background: #FFF9F9;
+  border-color: #F1D9D9;
+}
+
+.deadlinePrimary.soon .deadlineDateCard {
+  background: #FFFCF6;
+  border-color: #F0E4CA;
 }
 
 .deadlineDateCard strong {
@@ -211,6 +232,7 @@
   gap: 16px;
   padding: 13px 20px;
   border-top: 1px solid #EEEAE4;
+  background: #fff;
 }
 
 .deadlineNextDate {
@@ -233,7 +255,7 @@
   gap: 18px;
   padding: 13px 20px;
   border-top: 1px solid var(--deadline-line);
-  background: #FBFAF8;
+  background: #fff;
 }
 
 .deadlineFooter span {
@@ -260,6 +282,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 22px;
+  background: #fff;
 }
 
 .emptyWidget p {
@@ -276,6 +299,7 @@
 
   .deadlineTopbar {
     padding: 11px 13px;
+    background: #fff;
   }
 
   .deadlineTitleWrap {
@@ -310,14 +334,17 @@
     padding: 13px;
     border-left: 0;
     border-top: 4px solid var(--deadline-blue);
+    background: #fff;
   }
 
   .deadlinePrimary.soon {
     border-top-color: #D98B00;
+    background: #fff;
   }
 
   .deadlinePrimary.urgent {
     border-top-color: var(--deadline-red);
+    background: #fff;
   }
 
   .deadlineDateCard {
@@ -362,12 +389,14 @@
   .deadlineNextLabel {
     padding: 9px 13px 5px;
     font-size: 8px;
+    background: #fff;
   }
 
   .deadlineNextRow {
     grid-template-columns: 66px minmax(0, 1fr);
     gap: 9px;
     padding: 10px 13px;
+    background: #fff;
   }
 
   .deadlineNextDate {
@@ -382,6 +411,7 @@
   .deadlineFooter {
     display: block;
     padding: 10px 13px 12px;
+    background: #fff;
   }
 
   .deadlineFooter span {
