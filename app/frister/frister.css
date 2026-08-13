@@ -1,13 +1,9 @@
 :root {
-  --deadline-navy: #0A1F3C;
-  --deadline-light-blue: #AFC4D6;
-  --deadline-ink: #0A1F3C;
-  --deadline-muted: #66788A;
-  --deadline-line: rgba(175, 196, 214, 0.62);
-  --deadline-red: #C62828;
-  --deadline-red-soft: #FFF9F9;
-  --deadline-amber: #A86100;
-  --deadline-amber-soft: #FFFCF6;
+  --epf-charcoal: #2C292A;
+  --epf-light-blue: #98B4DF;
+  --epf-blue: #2A3E91;
+  --epf-cream: #F0ECE5;
+  --epf-sand: #D6CCBB;
 }
 
 html,
@@ -25,17 +21,17 @@ body {
   margin: 0;
   padding: 0;
   background: transparent;
-  color: var(--deadline-ink);
+  color: var(--epf-charcoal);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 .deadlineWidget {
   width: 100%;
   overflow: hidden;
-  border: 1px solid var(--deadline-line);
+  border: 1px solid var(--epf-sand);
   border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 14px 38px rgba(10, 31, 60, 0.08);
+  background: var(--epf-cream);
+  box-shadow: 0 14px 38px rgba(44, 41, 42, 0.09);
 }
 
 .deadlineTopbar {
@@ -44,8 +40,8 @@ body {
   justify-content: space-between;
   gap: 18px;
   padding: 17px 20px;
-  background: #fff;
-  border-bottom: 1px solid var(--deadline-line);
+  background: var(--epf-cream);
+  border-bottom: 1px solid var(--epf-sand);
 }
 
 .deadlineTitleWrap {
@@ -57,7 +53,7 @@ body {
 .deadlineWidget .eyebrow {
   display: block;
   margin: 0 0 3px;
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: .13em;
@@ -65,7 +61,7 @@ body {
 
 .deadlineWidget h1 {
   margin: 0;
-  color: var(--deadline-navy);
+  color: var(--epf-charcoal);
   font-size: 18px;
   line-height: 1.15;
   font-weight: 900;
@@ -76,8 +72,8 @@ body {
   flex: 0 0 auto;
   padding: 7px 11px;
   border-radius: 999px;
-  background: rgba(175, 196, 214, 0.28);
-  color: var(--deadline-navy);
+  background: var(--epf-light-blue);
+  color: var(--epf-charcoal);
   font-size: 12px;
   font-weight: 800;
 }
@@ -88,16 +84,16 @@ body {
   align-items: center;
   gap: 22px;
   padding: 24px;
-  border-left: 5px solid var(--deadline-navy);
-  background: #fff;
+  border-left: 5px solid var(--epf-blue);
+  background: var(--epf-cream);
 }
 
 .deadlinePrimary.soon {
-  border-left-color: #D98B00;
+  border-left-color: var(--epf-light-blue);
 }
 
 .deadlinePrimary.urgent {
-  border-left-color: var(--deadline-red);
+  border-left-color: var(--epf-charcoal);
 }
 
 .deadlineDateCard {
@@ -106,24 +102,24 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--deadline-line);
+  border: 1px solid var(--epf-sand);
   border-radius: 17px;
-  background: #fff;
-  box-shadow: 0 8px 22px rgba(10, 31, 60, 0.08);
+  background: var(--epf-cream);
+  box-shadow: 0 8px 22px rgba(44, 41, 42, 0.08);
 }
 
 .deadlinePrimary.urgent .deadlineDateCard {
-  background: var(--deadline-red-soft);
-  border-color: #F1D9D9;
+  background: var(--epf-sand);
+  border-color: var(--epf-charcoal);
 }
 
 .deadlinePrimary.soon .deadlineDateCard {
-  background: var(--deadline-amber-soft);
-  border-color: #F0E4CA;
+  background: var(--epf-light-blue);
+  border-color: var(--epf-blue);
 }
 
 .deadlineDateCard strong {
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 36px;
   font-weight: 900;
   line-height: .95;
@@ -131,7 +127,7 @@ body {
 
 .deadlineDateCard span {
   margin-top: 6px;
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: .13em;
@@ -139,12 +135,12 @@ body {
 
 .deadlinePrimary.urgent .deadlineDateCard strong,
 .deadlinePrimary.urgent .deadlineDateCard span {
-  color: var(--deadline-red);
+  color: var(--epf-charcoal);
 }
 
 .deadlinePrimary.soon .deadlineDateCard strong,
 .deadlinePrimary.soon .deadlineDateCard span {
-  color: var(--deadline-amber);
+  color: var(--epf-charcoal);
 }
 
 .deadlineMainCopy {
@@ -156,7 +152,7 @@ body {
   align-items: center;
   gap: 7px;
   margin-bottom: 7px;
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: .1em;
@@ -171,16 +167,16 @@ body {
 }
 
 .deadlinePrimary.urgent .deadlineStatus {
-  color: var(--deadline-red);
+  color: var(--epf-charcoal);
 }
 
 .deadlinePrimary.soon .deadlineStatus {
-  color: var(--deadline-amber);
+  color: var(--epf-blue);
 }
 
 .deadlineMainCopy h2 {
   margin: 0 0 6px;
-  color: var(--deadline-ink);
+  color: var(--epf-charcoal);
   font-size: 21px;
   line-height: 1.32;
   font-weight: 900;
@@ -189,21 +185,23 @@ body {
 
 .deadlineMainCopy p {
   margin: 0;
-  color: var(--deadline-muted);
+  color: var(--epf-charcoal);
   font-size: 13px;
   line-height: 1.45;
+  opacity: .72;
 }
 
 .deadlineNext {
-  background: #fff;
+  background: var(--epf-cream);
 }
 
 .deadlineNextLabel {
   padding: 13px 20px 7px;
-  color: #7C8D9C;
+  color: var(--epf-charcoal);
   font-size: 9px;
   font-weight: 900;
   letter-spacing: .14em;
+  opacity: .65;
 }
 
 .deadlineNextRow {
@@ -212,19 +210,19 @@ body {
   align-items: center;
   gap: 16px;
   padding: 13px 20px;
-  border-top: 1px solid var(--deadline-line);
-  background: #fff;
+  border-top: 1px solid var(--epf-sand);
+  background: var(--epf-cream);
 }
 
 .deadlineNextDate {
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 13px;
   font-weight: 900;
   white-space: nowrap;
 }
 
 .deadlineNextRow span {
-  color: #33485C;
+  color: var(--epf-charcoal);
   font-size: 13px;
   line-height: 1.42;
 }
@@ -235,25 +233,26 @@ body {
   justify-content: space-between;
   gap: 18px;
   padding: 13px 20px;
-  border-top: 1px solid var(--deadline-line);
-  background: #fff;
+  border-top: 1px solid var(--epf-sand);
+  background: var(--epf-sand);
 }
 
 .deadlineFooter span {
-  color: #7C8D9C;
+  color: var(--epf-charcoal);
   font-size: 11px;
+  opacity: .72;
 }
 
 .deadlineFooter a,
 .allDatesButton {
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;
 }
 
 .deadlineFooter a b {
-  color: var(--deadline-navy);
+  color: var(--epf-blue);
   font-size: 14px;
 }
 
@@ -263,24 +262,25 @@ body {
   justify-content: space-between;
   gap: 20px;
   padding: 22px;
-  background: #fff;
+  background: var(--epf-cream);
 }
 
 .emptyWidget p {
   margin: 7px 0 0;
-  color: var(--deadline-muted);
+  color: var(--epf-charcoal);
   font-size: 13px;
+  opacity: .72;
 }
 
 @media (max-width: 600px) {
   .deadlineWidget {
     border-radius: 16px;
-    box-shadow: 0 7px 20px rgba(10, 31, 60, 0.07);
+    box-shadow: 0 7px 20px rgba(44, 41, 42, 0.08);
   }
 
   .deadlineTopbar {
     padding: 12px 13px;
-    background: #fff;
+    background: var(--epf-cream);
   }
 
   .deadlineWidget .eyebrow {
@@ -301,16 +301,16 @@ body {
     gap: 12px;
     padding: 13px;
     border-left: 0;
-    border-top: 4px solid var(--deadline-navy);
-    background: #fff;
+    border-top: 4px solid var(--epf-blue);
+    background: var(--epf-cream);
   }
 
   .deadlinePrimary.soon {
-    border-top-color: #D98B00;
+    border-top-color: var(--epf-light-blue);
   }
 
   .deadlinePrimary.urgent {
-    border-top-color: var(--deadline-red);
+    border-top-color: var(--epf-charcoal);
   }
 
   .deadlineDateCard {
@@ -355,14 +355,14 @@ body {
   .deadlineNextLabel {
     padding: 9px 13px 5px;
     font-size: 8px;
-    background: #fff;
+    background: var(--epf-cream);
   }
 
   .deadlineNextRow {
     grid-template-columns: 66px minmax(0, 1fr);
     gap: 9px;
     padding: 10px 13px;
-    background: #fff;
+    background: var(--epf-cream);
   }
 
   .deadlineNextDate {
@@ -377,7 +377,7 @@ body {
   .deadlineFooter {
     display: block;
     padding: 10px 13px 12px;
-    background: #fff;
+    background: var(--epf-sand);
   }
 
   .deadlineFooter span {
@@ -392,14 +392,14 @@ body {
     justify-content: center;
     padding: 0 12px;
     border-radius: 10px;
-    background: var(--deadline-navy);
-    color: #fff;
+    background: var(--epf-blue);
+    color: var(--epf-cream);
     font-size: 11px;
   }
 
   .deadlineFooter a b {
     margin-left: 4px;
-    color: #fff;
+    color: var(--epf-cream);
   }
 
   .emptyWidget {
@@ -414,8 +414,8 @@ body {
     justify-content: center;
     margin-top: 14px;
     border-radius: 10px;
-    background: var(--deadline-navy);
-    color: #fff;
+    background: var(--epf-blue);
+    color: var(--epf-cream);
   }
 }
 
