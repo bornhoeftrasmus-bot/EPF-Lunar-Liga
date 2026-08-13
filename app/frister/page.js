@@ -196,7 +196,6 @@ export default async function FristerPage() {
       <section className="deadlineWidget">
         <header className="deadlineTopbar">
           <div className="deadlineTitleWrap">
-            <span className="deadlineBrand">EPF</span>
             <div>
               <span className="eyebrow">LUNAR LIGA</span>
               <h1>Vigtige frister</h1>
