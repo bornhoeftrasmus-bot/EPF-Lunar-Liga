@@ -3,15 +3,89 @@ import { getOrganisationTeams } from "@/lib/rankedin";
 
 export const revalidate = 300;
 
+const COPENHAGEN_TIME_ZONE = "Europe/Copenhagen";
+
+function timeZoneOffsetMs(date, timeZone = COPENHAGEN_TIME_ZONE) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+
+  const representedAsUtc = Date.UTC(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day),
+    Number(values.hour),
+    Number(values.minute),
+    Number(values.second)
+  );
+
+  return representedAsUtc - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+function dateInCopenhagen(year, month, day, hour = 0, minute = 0, second = 0) {
+  const wallClockAsUtc = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  );
+
+  let candidate = new Date(wallClockAsUtc);
+  let offset = timeZoneOffsetMs(candidate);
+  candidate = new Date(wallClockAsUtc - offset);
+
+  const correctedOffset = timeZoneOffsetMs(candidate);
+  if (correctedOffset !== offset) {
+    candidate = new Date(wallClockAsUtc - correctedOffset);
+  }
+
+  return Number.isNaN(candidate.getTime()) ? null : candidate;
+}
+
 function parseDate(value) {
   if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+
   const raw = String(value).trim();
-  const eu = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?$/);
+
+  // RankedIn can return European dates without a timezone.
+  // They represent Danish local time and must not be interpreted as UTC by Vercel.
+  const eu = raw.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+
   if (eu) {
-    const [, d, m, y, h = "0", min = "0"] = eu;
-    const date = new Date(+y, +m - 1, +d, +h, +min);
-    return Number.isNaN(date.getTime()) ? null : date;
+    const [, d, m, y, h = "0", min = "0", sec = "0"] = eu;
+    return dateInCopenhagen(y, m, d, h, min, sec);
   }
+
+  // RankedIn also returns ISO-looking timestamps without Z / timezone offset.
+  // Treat those as Copenhagen wall-clock time as well.
+  const localIso = raw.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?$/
+  );
+
+  if (localIso) {
+    const [, y, m, d, h = "0", min = "0", sec = "0"] = localIso;
+    return dateInCopenhagen(y, m, d, h, min, sec);
+  }
+
+  // Explicit timezone values (Z / +01:00 / +02:00 etc.) can be parsed natively.
   const date = new Date(raw);
   return Number.isNaN(date.getTime()) ? null : date;
 }
