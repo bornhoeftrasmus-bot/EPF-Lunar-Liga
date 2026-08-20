@@ -1,5 +1,5 @@
 import LeagueOverview from "@/components/LeagueOverview";
-import { getOrganisationTeams } from "@/lib/rankedin";
+import { getOrganisationTeams, getTeamHomepage } from "@/lib/rankedin";
 
 export const revalidate = 300;
 
@@ -150,6 +150,103 @@ const timeText = (date) => new Intl.DateTimeFormat("da-DK", {
   timeZone: "Europe/Copenhagen", hour: "2-digit", minute: "2-digit"
 }).format(date);
 
+function valueFrom(obj, ...keys) {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return "";
+}
+
+function playerName(player) {
+  const direct = valueFrom(player, "name", "Name");
+  if (direct) return String(direct).trim();
+
+  return [
+    valueFrom(player, "firstName", "FirstName"),
+    valueFrom(player, "middleName", "MiddleName"),
+    valueFrom(player, "lastName", "LastName")
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function rankedPlayer(player, fallbackPlayers = []) {
+  const name = playerName(player) || "Ukendt spiller";
+  const id = valueFrom(player, "id", "Id") || name;
+  const rankedInId = valueFrom(player, "rankedinId", "RankedinId");
+  const explicitUrl = valueFrom(player, "playerUrl", "PlayerUrl");
+
+  const fallback = fallbackPlayers.find((candidate) =>
+    String(candidate.id) === String(id) ||
+    candidate.name?.trim().toLocaleLowerCase("da") === name.trim().toLocaleLowerCase("da")
+  );
+
+  let url = fallback?.url || "";
+
+  if (explicitUrl) {
+    url = String(explicitUrl).startsWith("http")
+      ? String(explicitUrl)
+      : `https://www.rankedin.com${explicitUrl}`;
+  } else if (rankedInId) {
+    url = `https://www.rankedin.com/en/player/${rankedInId}`;
+  }
+
+  return {
+    id,
+    name,
+    role: valueFrom(
+      player,
+      "teamParticipantType",
+      "TeamParticipantType",
+      "role",
+      "Role"
+    ) || fallback?.role || "",
+    rating: valueFrom(
+      player,
+      "ratingBegin",
+      "RatingBegin",
+      "rating",
+      "Rating",
+      "skillIndex",
+      "SkillIndex"
+    ) || fallback?.rating || "",
+    url
+  };
+}
+
+function playersInRankedInOrder(homepage, fallbackPlayers = []) {
+  const team = homepage?.team || homepage?.Team || {};
+  const rawPlayers = Array.isArray(team.players)
+    ? team.players
+    : Array.isArray(team.Players)
+      ? team.Players
+      : [];
+
+  if (!rawPlayers.length) return fallbackPlayers;
+
+  return rawPlayers.map((player) => rankedPlayer(player, fallbackPlayers));
+}
+
+async function applyRankedInPlayerOrder(teams) {
+  const homepageResults = await Promise.allSettled(
+    teams.map((team) => getTeamHomepage(team.id))
+  );
+
+  return teams.map((team, index) => {
+    const result = homepageResults[index];
+
+    if (result?.status !== "fulfilled") return team;
+
+    return {
+      ...team,
+      players: playersInRankedInOrder(result.value, team.players)
+    };
+  });
+}
+
 function MatchesWidget({ matches, error }) {
   return (
     <main className="epf-matches-frame">
@@ -191,6 +288,10 @@ export default async function HomePage({ searchParams }) {
   catch (e) { console.error(e); error = "Holdene kunne ikke hentes fra Rankedin lige nu."; }
 
   if (embed) return <MatchesWidget matches={error ? [] : buildMatches(teams)} error={error} />;
+
+  if (!error) {
+    teams = await applyRankedInPlayerOrder(teams);
+  }
 
   return (
     <main className="page-shell">
