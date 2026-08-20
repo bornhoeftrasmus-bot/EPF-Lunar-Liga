@@ -69,7 +69,7 @@ function PlayerChips({ players }) {
 
   return (
     <div className="player-list">
-      {players.map((player) =>
+      {players.map((player, index) =>
         player.url ? (
           <a
             key={`${player.id}-${player.name}`}
@@ -80,7 +80,7 @@ function PlayerChips({ players }) {
             title="Åbn spiller på Rankedin"
             onClick={(e) => e.stopPropagation()}
           >
-            <span>{player.name}</span>
+            <span>{index + 1}. {player.name}</span>
             {String(player.role).toLowerCase().includes("captain") && (
               <small>Anfører</small>
             )}
@@ -88,7 +88,7 @@ function PlayerChips({ players }) {
           </a>
         ) : (
           <div key={`${player.id}-${player.name}`} className="player-chip">
-            <span>{player.name}</span>
+            <span>{index + 1}. {player.name}</span>
           </div>
         )
       )}
