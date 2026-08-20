@@ -150,7 +150,7 @@ export default async function TeamPage({ params, searchParams }) {
         </div>
 
         <div className="player-list compact">
-          {orderedPlayers.map((player) =>
+          {orderedPlayers.map((player, index) =>
             player.url ? (
               <a
                 key={`${player.id}-${player.name}`}
@@ -159,12 +159,12 @@ export default async function TeamPage({ params, searchParams }) {
                 target="_blank"
                 rel="noreferrer"
               >
-                <span>{player.name}</span>
+                <span>{index + 1}. {player.name}</span>
                 <span className="external">↗</span>
               </a>
             ) : (
               <div key={`${player.id}-${player.name}`} className="player-chip">
-                {player.name}
+                {index + 1}. {player.name}
               </div>
             )
           )}
