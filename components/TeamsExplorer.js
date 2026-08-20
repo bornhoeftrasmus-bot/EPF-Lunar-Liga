@@ -7,6 +7,62 @@ function cleanDivision(value) {
   return (value || "").trim();
 }
 
+function logicalLeagueName(value) {
+  const raw = (value || "").trim();
+
+  if (/^Lunar Ligaen 4P\b/i.test(raw)) {
+    return raw.replace(/^Lunar Ligaen 4P\b/i, "Lunar Ligaen");
+  }
+
+  return raw;
+}
+
+function teamCategory(team) {
+  const league = String(team?.league || "").toLocaleLowerCase("da");
+
+  if (
+    league.includes("4p") ||
+    league.includes("damer") ||
+    league.includes("women") ||
+    league.includes("ladies")
+  ) {
+    return "damer";
+  }
+
+  if (
+    league.includes("lunar") ||
+    league.includes("herrer") ||
+    league.includes("men") ||
+    league.includes("forenings")
+  ) {
+    return "herrer";
+  }
+
+  return "";
+}
+
+function categoriesForLeague(teams, league) {
+  if (!league || league === "all") return [];
+
+  return [
+    ...new Set(
+      teams
+        .filter((team) => logicalLeagueName(team.league) === league)
+        .map(teamCategory)
+        .filter(Boolean)
+    )
+  ].sort((a, b) => {
+    const order = { herrer: 1, damer: 2 };
+    return (order[a] || 99) - (order[b] || 99);
+  });
+}
+
+function categoryLabel(value) {
+  if (value === "herrer") return "Herrer";
+  if (value === "damer") return "Damer";
+  return value;
+}
+
 function matchDateValue(match) {
   if (!match?.date) return Number.POSITIVE_INFINITY;
   const d = new Date(match.date);
@@ -98,6 +154,7 @@ export default function TeamsExplorer({ initialTeams }) {
   const [query, setQuery] = useState("");
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [leagueFilter, setLeagueFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("team");
   const [hydrated, setHydrated] = useState(false);
 
@@ -107,13 +164,35 @@ export default function TeamsExplorer({ initialTeams }) {
       localStorage.getItem("epfLeagueOverviewState") || "{}"
     );
 
+    const rawLeague = params.get("league") ?? saved.leagueFilter ?? "all";
+    const nextLeague =
+      rawLeague === "all" ? "all" : logicalLeagueName(rawLeague);
+
+    const availableCategories = categoriesForLeague(initialTeams, nextLeague);
+    const requestedCategory =
+      params.get("category") ?? saved.categoryFilter ?? "";
+
+    let nextCategory = requestedCategory;
+
+    if (!nextCategory || !availableCategories.includes(nextCategory)) {
+      if (/4p/i.test(rawLeague) && availableCategories.includes("damer")) {
+        nextCategory = "damer";
+      } else if (
+        availableCategories.length > 1 &&
+        availableCategories.includes("herrer")
+      ) {
+        nextCategory = "herrer";
+      } else {
+        nextCategory = "all";
+      }
+    }
+
     setQuery(params.get("q") ?? saved.query ?? "");
     setDivisionFilter(
       params.get("division") ?? saved.divisionFilter ?? "all"
     );
-    setLeagueFilter(
-      params.get("league") ?? saved.leagueFilter ?? "all"
-    );
+    setLeagueFilter(nextLeague);
+    setCategoryFilter(nextCategory);
     setSortBy(params.get("sort") ?? saved.sortBy ?? "team");
     setHydrated(true);
 
@@ -126,7 +205,55 @@ export default function TeamsExplorer({ initialTeams }) {
         window.scrollTo({ top: savedScroll, behavior: "auto" });
       });
     }
-  }, []);
+  }, [initialTeams]);
+
+  const leagues = useMemo(() => {
+    return [
+      ...new Set(
+        initialTeams
+          .map((team) => logicalLeagueName(team.league))
+          .filter(Boolean)
+      )
+    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
+  }, [initialTeams]);
+
+  const categoryOptions = useMemo(() => {
+    return categoriesForLeague(initialTeams, leagueFilter);
+  }, [initialTeams, leagueFilter]);
+
+  const showCategoryFilter =
+    leagueFilter !== "all" && categoryOptions.length > 1;
+
+  const divisions = useMemo(() => {
+    let relevantTeams = initialTeams;
+
+    if (leagueFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => logicalLeagueName(team.league) === leagueFilter
+      );
+    }
+
+    if (showCategoryFilter && categoryFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => teamCategory(team) === categoryFilter
+      );
+    }
+
+    return [
+      ...new Set(
+        relevantTeams
+          .map((team) => cleanDivision(team.division))
+          .filter(Boolean)
+      )
+    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
+  }, [initialTeams, leagueFilter, categoryFilter, showCategoryFilter]);
+
+  useEffect(() => {
+    if (!hydrated || divisionFilter === "all") return;
+    if (!divisions.includes(divisionFilter)) {
+      setDivisionFilter("all");
+    }
+  }, [divisions, divisionFilter, hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -136,6 +263,9 @@ export default function TeamsExplorer({ initialTeams }) {
     if (query.trim()) params.set("q", query.trim());
     if (divisionFilter !== "all") params.set("division", divisionFilter);
     if (leagueFilter !== "all") params.set("league", leagueFilter);
+    if (showCategoryFilter && categoryFilter !== "all") {
+      params.set("category", categoryFilter);
+    }
     if (sortBy !== "team") params.set("sort", sortBy);
 
     const queryString = params.toString();
@@ -151,10 +281,19 @@ export default function TeamsExplorer({ initialTeams }) {
         query,
         divisionFilter,
         leagueFilter,
+        categoryFilter,
         sortBy
       })
     );
-  }, [query, divisionFilter, leagueFilter, sortBy, hydrated]);
+  }, [
+    query,
+    divisionFilter,
+    leagueFilter,
+    categoryFilter,
+    sortBy,
+    showCategoryFilter,
+    hydrated
+  ]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -169,44 +308,6 @@ export default function TeamsExplorer({ initialTeams }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [hydrated]);
-
-  const leagues = useMemo(() => {
-    return [
-      ...new Set(
-        initialTeams
-          .map((team) => (team.league || "").trim())
-          .filter(Boolean)
-      )
-    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
-  }, [initialTeams]);
-
-  // Række-listen følger den valgte liga. På den måde kan man ikke vælge
-  // fx en damerække, som ikke findes i den valgte Lunar Liga / ForeningsLiga.
-  const divisions = useMemo(() => {
-    const teamsInSelectedLeague =
-      leagueFilter === "all"
-        ? initialTeams
-        : initialTeams.filter(
-            (team) => (team.league || "").trim() === leagueFilter
-          );
-
-    return [
-      ...new Set(
-        teamsInSelectedLeague
-          .map((team) => cleanDivision(team.division))
-          .filter(Boolean)
-      )
-    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
-  }, [initialTeams, leagueFilter]);
-
-  // Hvis en gemt/valgt række ikke findes i den nye liga, nulstilles kun rækken.
-  // Ligaen bliver stående, så brugeren straks ser de korrekte muligheder.
-  useEffect(() => {
-    if (!hydrated || divisionFilter === "all") return;
-    if (!divisions.includes(divisionFilter)) {
-      setDivisionFilter("all");
-    }
-  }, [divisions, divisionFilter, hydrated]);
 
   const filteredTeams = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("da");
@@ -227,9 +328,19 @@ export default function TeamsExplorer({ initialTeams }) {
 
       const matchesLeague =
         leagueFilter === "all" ||
-        (team.league || "").trim() === leagueFilter;
+        logicalLeagueName(team.league) === leagueFilter;
 
-      return matchesQuery && matchesDivision && matchesLeague;
+      const matchesCategory =
+        !showCategoryFilter ||
+        categoryFilter === "all" ||
+        teamCategory(team) === categoryFilter;
+
+      return (
+        matchesQuery &&
+        matchesDivision &&
+        matchesLeague &&
+        matchesCategory
+      );
     });
 
     teams = [...teams].sort((a, b) => {
@@ -254,8 +365,8 @@ export default function TeamsExplorer({ initialTeams }) {
       }
 
       if (sortBy === "league") {
-        const leagueCompare = (a.league || "").localeCompare(
-          b.league || "",
+        const leagueCompare = logicalLeagueName(a.league).localeCompare(
+          logicalLeagueName(b.league),
           "da",
           { numeric: true }
         );
@@ -266,7 +377,15 @@ export default function TeamsExplorer({ initialTeams }) {
     });
 
     return teams;
-  }, [query, divisionFilter, leagueFilter, sortBy, initialTeams]);
+  }, [
+    query,
+    divisionFilter,
+    leagueFilter,
+    categoryFilter,
+    showCategoryFilter,
+    sortBy,
+    initialTeams
+  ]);
 
   const buildTeamUrl = (teamId) => {
     const params = new URLSearchParams();
@@ -274,6 +393,9 @@ export default function TeamsExplorer({ initialTeams }) {
     if (query.trim()) params.set("q", query.trim());
     if (divisionFilter !== "all") params.set("division", divisionFilter);
     if (leagueFilter !== "all") params.set("league", leagueFilter);
+    if (showCategoryFilter && categoryFilter !== "all") {
+      params.set("category", categoryFilter);
+    }
     if (sortBy !== "team") params.set("sort", sortBy);
 
     const returnQuery = params.toString();
@@ -286,11 +408,26 @@ export default function TeamsExplorer({ initialTeams }) {
     setQuery("");
     setDivisionFilter("all");
     setLeagueFilter("all");
+    setCategoryFilter("all");
     setSortBy("team");
   };
 
   const handleLeagueChange = (event) => {
-    setLeagueFilter(event.target.value);
+    const nextLeague = event.target.value;
+    const categories = categoriesForLeague(initialTeams, nextLeague);
+
+    setLeagueFilter(nextLeague);
+    setDivisionFilter("all");
+
+    if (categories.length > 1 && categories.includes("herrer")) {
+      setCategoryFilter("herrer");
+    } else {
+      setCategoryFilter("all");
+    }
+  };
+
+  const handleCategoryChange = (event) => {
+    setCategoryFilter(event.target.value);
     setDivisionFilter("all");
   };
 
@@ -316,7 +453,12 @@ export default function TeamsExplorer({ initialTeams }) {
           </div>
         </div>
 
-        <div className="filters-row">
+        <div
+          className="filters-row"
+          style={{
+            gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))"
+          }}
+        >
           <div className="filter-field">
             <label htmlFor="leagueFilter">Liga</label>
             <select
@@ -333,6 +475,24 @@ export default function TeamsExplorer({ initialTeams }) {
             </select>
           </div>
 
+          {showCategoryFilter && (
+            <div className="filter-field">
+              <label htmlFor="categoryFilter">Herrer / Damer</label>
+              <select
+                id="categoryFilter"
+                value={categoryFilter}
+                onChange={handleCategoryChange}
+              >
+                <option value="all">Alle</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {categoryLabel(category)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="filter-field">
             <label htmlFor="divisionFilter">Række</label>
             <select
@@ -341,7 +501,11 @@ export default function TeamsExplorer({ initialTeams }) {
               onChange={(e) => setDivisionFilter(e.target.value)}
             >
               <option value="all">
-                {leagueFilter === "all" ? "Alle rækker" : "Alle rækker i valgt liga"}
+                {leagueFilter === "all"
+                  ? "Alle rækker"
+                  : showCategoryFilter && categoryFilter !== "all"
+                    ? `Alle ${categoryLabel(categoryFilter).toLowerCase()}rækker`
+                    : "Alle rækker i valgt liga"}
               </option>
               {divisions.map((division) => (
                 <option key={division} value={division}>
@@ -366,9 +530,11 @@ export default function TeamsExplorer({ initialTeams }) {
             </select>
           </div>
 
-          <button className="reset-button" onClick={resetFilters}>
-            Nulstil
-          </button>
+          <div style={{ display: "flex", alignItems: "end" }}>
+            <button className="reset-button" onClick={resetFilters}>
+              Nulstil
+            </button>
+          </div>
         </div>
 
         <div className="search-result-text">
