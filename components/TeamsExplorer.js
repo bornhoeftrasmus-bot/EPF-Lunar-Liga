@@ -55,9 +55,7 @@ function NextMatch({ team }) {
       <strong>{opponent || "Modstander ikke angivet"}</strong>
       <span>{formatNextMatchDate(match.date)}</span>
 
-      {match.location && (
-        <small>⌖ {match.location}</small>
-      )}
+      {match.location && <small>⌖ {match.location}</small>}
     </div>
   );
 }
@@ -103,30 +101,20 @@ export default function TeamsExplorer({ initialTeams }) {
   const [sortBy, setSortBy] = useState("team");
   const [hydrated, setHydrated] = useState(false);
 
-  // Load filters/sort/search from URL first, then localStorage as fallback.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-
     const saved = JSON.parse(
       localStorage.getItem("epfLeagueOverviewState") || "{}"
     );
 
-    const nextQuery =
-      params.get("q") ?? saved.query ?? "";
-
-    const nextDivision =
-      params.get("division") ?? saved.divisionFilter ?? "all";
-
-    const nextLeague =
-      params.get("league") ?? saved.leagueFilter ?? "all";
-
-    const nextSort =
-      params.get("sort") ?? saved.sortBy ?? "team";
-
-    setQuery(nextQuery);
-    setDivisionFilter(nextDivision);
-    setLeagueFilter(nextLeague);
-    setSortBy(nextSort);
+    setQuery(params.get("q") ?? saved.query ?? "");
+    setDivisionFilter(
+      params.get("division") ?? saved.divisionFilter ?? "all"
+    );
+    setLeagueFilter(
+      params.get("league") ?? saved.leagueFilter ?? "all"
+    );
+    setSortBy(params.get("sort") ?? saved.sortBy ?? "team");
     setHydrated(true);
 
     const savedScroll = Number(
@@ -135,15 +123,11 @@ export default function TeamsExplorer({ initialTeams }) {
 
     if (savedScroll > 0) {
       requestAnimationFrame(() => {
-        window.scrollTo({
-          top: savedScroll,
-          behavior: "auto"
-        });
+        window.scrollTo({ top: savedScroll, behavior: "auto" });
       });
     }
   }, []);
 
-  // Keep URL + localStorage in sync whenever filters change.
   useEffect(() => {
     if (!hydrated) return;
 
@@ -172,7 +156,6 @@ export default function TeamsExplorer({ initialTeams }) {
     );
   }, [query, divisionFilter, leagueFilter, sortBy, hydrated]);
 
-  // Remember the current scroll position on the overview page.
   useEffect(() => {
     if (!hydrated) return;
 
@@ -184,21 +167,46 @@ export default function TeamsExplorer({ initialTeams }) {
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, [hydrated]);
 
-  const divisions = useMemo(() => {
-    return [...new Set(initialTeams.map((t) => cleanDivision(t.division)).filter(Boolean))]
-      .sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
+  const leagues = useMemo(() => {
+    return [
+      ...new Set(
+        initialTeams
+          .map((team) => (team.league || "").trim())
+          .filter(Boolean)
+      )
+    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
   }, [initialTeams]);
 
-  const leagues = useMemo(() => {
-    return [...new Set(initialTeams.map((t) => (t.league || "").trim()).filter(Boolean))]
-      .sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
-  }, [initialTeams]);
+  // Række-listen følger den valgte liga. På den måde kan man ikke vælge
+  // fx en damerække, som ikke findes i den valgte Lunar Liga / ForeningsLiga.
+  const divisions = useMemo(() => {
+    const teamsInSelectedLeague =
+      leagueFilter === "all"
+        ? initialTeams
+        : initialTeams.filter(
+            (team) => (team.league || "").trim() === leagueFilter
+          );
+
+    return [
+      ...new Set(
+        teamsInSelectedLeague
+          .map((team) => cleanDivision(team.division))
+          .filter(Boolean)
+      )
+    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
+  }, [initialTeams, leagueFilter]);
+
+  // Hvis en gemt/valgt række ikke findes i den nye liga, nulstilles kun rækken.
+  // Ligaen bliver stående, så brugeren straks ser de korrekte muligheder.
+  useEffect(() => {
+    if (!hydrated || divisionFilter === "all") return;
+    if (!divisions.includes(divisionFilter)) {
+      setDivisionFilter("all");
+    }
+  }, [divisions, divisionFilter, hydrated]);
 
   const filteredTeams = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("da");
@@ -281,6 +289,11 @@ export default function TeamsExplorer({ initialTeams }) {
     setSortBy("team");
   };
 
+  const handleLeagueChange = (event) => {
+    setLeagueFilter(event.target.value);
+    setDivisionFilter("all");
+  };
+
   return (
     <>
       <section className="search-panel">
@@ -305,32 +318,34 @@ export default function TeamsExplorer({ initialTeams }) {
 
         <div className="filters-row">
           <div className="filter-field">
-            <label htmlFor="divisionFilter">Række</label>
+            <label htmlFor="leagueFilter">Liga</label>
             <select
-              id="divisionFilter"
-              value={divisionFilter}
-              onChange={(e) => setDivisionFilter(e.target.value)}
+              id="leagueFilter"
+              value={leagueFilter}
+              onChange={handleLeagueChange}
             >
-              <option value="all">Alle rækker</option>
-              {divisions.map((division) => (
-                <option key={division} value={division}>
-                  {division}
+              <option value="all">Alle ligaer</option>
+              {leagues.map((league) => (
+                <option key={league} value={league}>
+                  {league}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="filter-field">
-            <label htmlFor="leagueFilter">Liga</label>
+            <label htmlFor="divisionFilter">Række</label>
             <select
-              id="leagueFilter"
-              value={leagueFilter}
-              onChange={(e) => setLeagueFilter(e.target.value)}
+              id="divisionFilter"
+              value={divisionFilter}
+              onChange={(e) => setDivisionFilter(e.target.value)}
             >
-              <option value="all">Alle ligaer</option>
-              {leagues.map((league) => (
-                <option key={league} value={league}>
-                  {league}
+              <option value="all">
+                {leagueFilter === "all" ? "Alle rækker" : "Alle rækker i valgt liga"}
+              </option>
+              {divisions.map((division) => (
+                <option key={division} value={division}>
+                  {division}
                 </option>
               ))}
             </select>
@@ -373,9 +388,7 @@ export default function TeamsExplorer({ initialTeams }) {
           <article className="team-card" key={team.id}>
             <div className="team-card-top">
               <div>
-                <div className="league-label">
-                  {team.league || ""}
-                </div>
+                <div className="league-label">{team.league || ""}</div>
                 <h2>{team.name}</h2>
 
                 {team.division && (
