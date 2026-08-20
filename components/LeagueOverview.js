@@ -4,6 +4,66 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TeamsExplorer from "@/components/TeamsExplorer";
 
+function cleanDivision(value) {
+  return (value || "").trim();
+}
+
+function logicalLeagueName(value) {
+  const raw = (value || "").trim();
+
+  if (/^Lunar Ligaen 4P\b/i.test(raw)) {
+    return raw.replace(/^Lunar Ligaen 4P\b/i, "Lunar Ligaen");
+  }
+
+  return raw;
+}
+
+function teamCategory(team) {
+  const league = String(team?.league || "").toLocaleLowerCase("da");
+
+  if (
+    league.includes("4p") ||
+    league.includes("damer") ||
+    league.includes("women") ||
+    league.includes("ladies")
+  ) {
+    return "damer";
+  }
+
+  if (
+    league.includes("lunar") ||
+    league.includes("herrer") ||
+    league.includes("men") ||
+    league.includes("forenings")
+  ) {
+    return "herrer";
+  }
+
+  return "";
+}
+
+function categoriesForLeague(teams, league) {
+  if (!league || league === "all") return [];
+
+  return [
+    ...new Set(
+      teams
+        .filter((team) => logicalLeagueName(team.league) === league)
+        .map(teamCategory)
+        .filter(Boolean)
+    )
+  ].sort((a, b) => {
+    const order = { herrer: 1, damer: 2 };
+    return (order[a] || 99) - (order[b] || 99);
+  });
+}
+
+function categoryLabel(value) {
+  if (value === "herrer") return "Herrer";
+  if (value === "damer") return "Damer";
+  return value;
+}
+
 function parseDate(value) {
   if (!value) return null;
 
@@ -39,8 +99,10 @@ function parseDate(value) {
 }
 
 function sameTeam(a, b) {
-  return String(a || "").trim().toLowerCase() ===
-         String(b || "").trim().toLowerCase();
+  return (
+    String(a || "").trim().toLowerCase() ===
+    String(b || "").trim().toLowerCase()
+  );
 }
 
 function buildHomeMatches(teams) {
@@ -48,8 +110,7 @@ function buildHomeMatches(teams) {
 
   for (const team of teams) {
     const candidates =
-      Array.isArray(team.upcomingHomeMatches) &&
-      team.upcomingHomeMatches.length
+      Array.isArray(team.upcomingHomeMatches) && team.upcomingHomeMatches.length
         ? team.upcomingHomeMatches
         : [team.nextHomeMatch].filter(Boolean);
 
@@ -59,8 +120,7 @@ function buildHomeMatches(teams) {
 
       if (!sameTeam(match.home, team.name)) continue;
 
-      const key =
-        `${match.id || ""}|${team.id}|${date.toISOString()}|${match.home}|${match.away}`;
+      const key = `${match.id || ""}|${team.id}|${date.toISOString()}|${match.home}|${match.away}`;
 
       matches.push({
         key,
@@ -74,9 +134,7 @@ function buildHomeMatches(teams) {
         home: match.home,
         away: match.away,
         location:
-          match.location ||
-          team.homeCourt ||
-          "Spillested ikke angivet",
+          match.location || team.homeCourt || "Spillested ikke angivet",
         address: match.address || "",
         status: match.status || "",
         showResults: Boolean(match.showResults),
@@ -140,10 +198,11 @@ function getCalendarCells(activeMonth, matches) {
     const date = new Date(year, month, dayNum);
     const inMonth = date.getMonth() === month;
 
-    const dayMatches = matches.filter((match) =>
-      match.date.getFullYear() === date.getFullYear() &&
-      match.date.getMonth() === date.getMonth() &&
-      match.date.getDate() === date.getDate()
+    const dayMatches = matches.filter(
+      (match) =>
+        match.date.getFullYear() === date.getFullYear() &&
+        match.date.getMonth() === date.getMonth() &&
+        match.date.getDate() === date.getDate()
     );
 
     result.push({
@@ -156,8 +215,6 @@ function getCalendarCells(activeMonth, matches) {
   return result;
 }
 
-
-
 function calendarAnchor(match) {
   return `calendar-match-${String(match.key).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
@@ -166,6 +223,8 @@ function buildMatchLink(
   match,
   activeMonth,
   leagueFilter,
+  categoryFilter,
+  divisionFilter,
   teamFilter,
   displayMode
 ) {
@@ -183,6 +242,14 @@ function buildMatchLink(
 
   if (leagueFilter !== "all") {
     calendarParams.set("calendarLeague", leagueFilter);
+  }
+
+  if (categoryFilter !== "all") {
+    calendarParams.set("calendarCategory", categoryFilter);
+  }
+
+  if (divisionFilter !== "all") {
+    calendarParams.set("calendarDivision", divisionFilter);
   }
 
   if (teamFilter !== "all") {
@@ -206,6 +273,8 @@ function MatchBlock({
   match,
   activeMonth,
   leagueFilter,
+  categoryFilter,
+  divisionFilter,
   teamFilter,
   displayMode
 }) {
@@ -213,6 +282,8 @@ function MatchBlock({
     match,
     activeMonth,
     leagueFilter,
+    categoryFilter,
+    divisionFilter,
     teamFilter,
     displayMode
   );
@@ -224,20 +295,14 @@ function MatchBlock({
       className="calendar-match calendar-match-link"
       title={`Åbn ${match.teamName} mod ${match.away}`}
     >
-      <div className="calendar-match-time">
-        {formatTime(match.date)}
-      </div>
+      <div className="calendar-match-time">{formatTime(match.date)}</div>
 
       <strong>{match.teamName}</strong>
       <span>vs. {match.away}</span>
 
-      <div className="calendar-venue">
-        ⌖ {match.location}
-      </div>
+      <div className="calendar-venue">⌖ {match.location}</div>
 
-      {match.division && (
-        <small>{match.division}</small>
-      )}
+      {match.division && <small>{match.division}</small>}
     </Link>
   );
 }
@@ -253,13 +318,15 @@ function MonthCalendar({ teams }) {
 
   const [activeMonth, setActiveMonth] = useState(initialMonth);
   const [leagueFilter, setLeagueFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [divisionFilter, setDivisionFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
   const [displayMode, setDisplayMode] = useState("calendar");
+  const [isMobile, setIsMobile] = useState(false);
   const [calendarHydrated, setCalendarHydrated] = useState(false);
   const [nowMs, setNowMs] = useState(Date.now());
 
   // Keep upcoming matches current even when the page stays open.
-  // A match disappears automatically once its scheduled start time has passed.
   useEffect(() => {
     const updateNow = () => setNowMs(Date.now());
 
@@ -272,13 +339,41 @@ function MonthCalendar({ teams }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
+    const mobileQuery = window.matchMedia("(max-width: 760px)");
+    const mobileNow = mobileQuery.matches;
+    setIsMobile(mobileNow);
+
     const monthParam = params.get("month");
     if (/^\d{4}-\d{2}$/.test(monthParam || "")) {
       const [year, month] = monthParam.split("-").map(Number);
       setActiveMonth(new Date(year, month - 1, 1));
     }
 
-    setLeagueFilter(params.get("calendarLeague") || "all");
+    const rawLeague = params.get("calendarLeague") || "all";
+    const nextLeague =
+      rawLeague === "all" ? "all" : logicalLeagueName(rawLeague);
+
+    const availableCategories = categoriesForLeague(teams, nextLeague);
+    const requestedCategory = params.get("calendarCategory") || "";
+
+    let nextCategory = requestedCategory;
+
+    if (!nextCategory || !availableCategories.includes(nextCategory)) {
+      if (/4p/i.test(rawLeague) && availableCategories.includes("damer")) {
+        nextCategory = "damer";
+      } else if (
+        availableCategories.length > 1 &&
+        availableCategories.includes("herrer")
+      ) {
+        nextCategory = "herrer";
+      } else {
+        nextCategory = "all";
+      }
+    }
+
+    setLeagueFilter(nextLeague);
+    setCategoryFilter(nextCategory);
+    setDivisionFilter(params.get("calendarDivision") || "all");
     setTeamFilter(params.get("calendarTeam") || "all");
 
     const savedView =
@@ -287,20 +382,152 @@ function MonthCalendar({ teams }) {
       "calendar";
 
     setDisplayMode(
-      savedView === "list" ? "list" : "calendar"
+      mobileNow ? "calendar" : savedView === "list" ? "list" : "calendar"
     );
 
     setCalendarHydrated(true);
-  }, []);
+
+    const onMobileChange = (event) => {
+      setIsMobile(event.matches);
+      if (event.matches) {
+        setDisplayMode("calendar");
+      }
+    };
+
+    mobileQuery.addEventListener?.("change", onMobileChange);
+
+    return () => {
+      mobileQuery.removeEventListener?.("change", onMobileChange);
+    };
+  }, [teams]);
+
+  const leagues = useMemo(() => {
+    return [
+      ...new Set(
+        teams
+          .map((team) => logicalLeagueName(team.league))
+          .filter(Boolean)
+      )
+    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
+  }, [teams]);
+
+  const categoryOptions = useMemo(() => {
+    return categoriesForLeague(teams, leagueFilter);
+  }, [teams, leagueFilter]);
+
+  const showCategoryFilter =
+    leagueFilter !== "all" && categoryOptions.length > 1;
+
+  const divisions = useMemo(() => {
+    let relevantTeams = teams;
+
+    if (leagueFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => logicalLeagueName(team.league) === leagueFilter
+      );
+    }
+
+    if (showCategoryFilter && categoryFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => teamCategory(team) === categoryFilter
+      );
+    }
+
+    return [
+      ...new Set(
+        relevantTeams
+          .map((team) => cleanDivision(team.division))
+          .filter(Boolean)
+      )
+    ].sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
+  }, [teams, leagueFilter, categoryFilter, showCategoryFilter]);
+
+  const teamOptions = useMemo(() => {
+    let relevantTeams = teams;
+
+    if (leagueFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => logicalLeagueName(team.league) === leagueFilter
+      );
+    }
+
+    if (showCategoryFilter && categoryFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => teamCategory(team) === categoryFilter
+      );
+    }
+
+    if (divisionFilter !== "all") {
+      relevantTeams = relevantTeams.filter(
+        (team) => cleanDivision(team.division) === divisionFilter
+      );
+    }
+
+    return [...relevantTeams].sort((a, b) =>
+      a.name.localeCompare(b.name, "da", { numeric: true })
+    );
+  }, [teams, leagueFilter, categoryFilter, divisionFilter, showCategoryFilter]);
+
+  useEffect(() => {
+    if (!calendarHydrated || divisionFilter === "all") return;
+
+    if (!divisions.includes(divisionFilter)) {
+      setDivisionFilter("all");
+      setTeamFilter("all");
+    }
+  }, [divisions, divisionFilter, calendarHydrated]);
+
+  useEffect(() => {
+    if (!calendarHydrated || teamFilter === "all") return;
+
+    if (!teamOptions.some((team) => String(team.id) === String(teamFilter))) {
+      setTeamFilter("all");
+    }
+  }, [teamOptions, teamFilter, calendarHydrated]);
 
   useEffect(() => {
     if (!calendarHydrated) return;
 
-    localStorage.setItem("epfCalendarView", displayMode);
+    if (!isMobile) {
+      localStorage.setItem("epfCalendarView", displayMode);
+    }
 
     const params = new URLSearchParams(window.location.search);
     params.set("view", "calendar");
-    params.set("calendarView", displayMode);
+    params.set(
+      "month",
+      `${activeMonth.getFullYear()}-${String(activeMonth.getMonth() + 1).padStart(2, "0")}`
+    );
+
+    if (!isMobile) {
+      params.set("calendarView", displayMode);
+    } else {
+      params.delete("calendarView");
+    }
+
+    if (leagueFilter !== "all") {
+      params.set("calendarLeague", leagueFilter);
+    } else {
+      params.delete("calendarLeague");
+    }
+
+    if (showCategoryFilter && categoryFilter !== "all") {
+      params.set("calendarCategory", categoryFilter);
+    } else {
+      params.delete("calendarCategory");
+    }
+
+    if (divisionFilter !== "all") {
+      params.set("calendarDivision", divisionFilter);
+    } else {
+      params.delete("calendarDivision");
+    }
+
+    if (teamFilter !== "all") {
+      params.set("calendarTeam", teamFilter);
+    } else {
+      params.delete("calendarTeam");
+    }
 
     const query = params.toString();
     window.history.replaceState(
@@ -308,7 +535,17 @@ function MonthCalendar({ teams }) {
       "",
       `${window.location.pathname}?${query}${window.location.hash || ""}`
     );
-  }, [displayMode, calendarHydrated]);
+  }, [
+    activeMonth,
+    leagueFilter,
+    categoryFilter,
+    divisionFilter,
+    teamFilter,
+    displayMode,
+    showCategoryFilter,
+    isMobile,
+    calendarHydrated
+  ]);
 
   useEffect(() => {
     if (!calendarHydrated) return;
@@ -319,9 +556,11 @@ function MonthCalendar({ teams }) {
     const id = decodeURIComponent(hash.slice(1));
 
     const timer = setTimeout(() => {
-      const element =
-        document.getElementById(id) ||
-        document.getElementById(`${id}-mobile`);
+      const element = isMobile
+        ? document.getElementById(`${id}-mobile`)
+        : displayMode === "list"
+          ? document.getElementById(`${id}-list`)
+          : document.getElementById(id);
 
       element?.scrollIntoView({
         behavior: "smooth",
@@ -337,84 +576,110 @@ function MonthCalendar({ teams }) {
     }, 180);
 
     return () => clearTimeout(timer);
-  }, [calendarHydrated, activeMonth, leagueFilter, teamFilter]);
-
-  const leagues = useMemo(() => {
-    return [...new Set(teams.map(t => t.league).filter(Boolean))]
-      .sort((a, b) => a.localeCompare(b, "da", { numeric: true }));
-  }, [teams]);
-
-  const teamOptions = useMemo(() => {
-    return [...teams]
-      .sort((a, b) => a.name.localeCompare(b.name, "da", { numeric: true }));
-  }, [teams]);
+  }, [
+    calendarHydrated,
+    activeMonth,
+    leagueFilter,
+    categoryFilter,
+    divisionFilter,
+    teamFilter,
+    displayMode,
+    isMobile
+  ]);
 
   const filteredMatches = useMemo(() => {
     return allHomeMatches.filter((match) => {
       const validDate =
-        match.date instanceof Date &&
-        !Number.isNaN(match.date.getTime());
+        match.date instanceof Date && !Number.isNaN(match.date.getTime());
 
-      const kickoffStillAhead =
-        validDate &&
-        match.date.getTime() > nowMs;
+      const kickoffStillAhead = validDate && match.date.getTime() > nowMs;
 
-      const isPlayed =
-        match.status === "Spillet" ||
-        match.showResults === true;
+      const isPlayed = match.status === "Spillet" || match.showResults === true;
 
       const leagueOk =
         leagueFilter === "all" ||
-        match.league === leagueFilter;
+        logicalLeagueName(match.league) === leagueFilter;
+
+      const categoryOk =
+        !showCategoryFilter ||
+        categoryFilter === "all" ||
+        teamCategory(match) === categoryFilter;
+
+      const divisionOk =
+        divisionFilter === "all" ||
+        cleanDivision(match.division) === divisionFilter;
 
       const teamOk =
         teamFilter === "all" ||
         String(match.teamId) === String(teamFilter);
 
-      /*
-        Calendar is deliberately an upcoming-fixtures view:
-        - played/result matches are always hidden
-        - matches disappear as soon as scheduled kickoff passes
-        - this also handles matches where RankedIn has not entered a result yet
-      */
       return (
         kickoffStillAhead &&
         !isPlayed &&
         leagueOk &&
+        categoryOk &&
+        divisionOk &&
         teamOk
       );
     });
   }, [
     allHomeMatches,
     leagueFilter,
+    categoryFilter,
+    divisionFilter,
     teamFilter,
+    showCategoryFilter,
     nowMs
   ]);
 
   const monthMatches = filteredMatches.filter(
-    (m) => monthKey(m.date) === monthKey(activeMonth)
+    (match) => monthKey(match.date) === monthKey(activeMonth)
   );
 
   const cells = getCalendarCells(activeMonth, filteredMatches);
 
   const changeMonth = (delta) => {
-    setActiveMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+    setActiveMonth((prev) =>
+      new Date(prev.getFullYear(), prev.getMonth() + delta, 1)
+    );
   };
 
   const goToToday = () => {
     const today = new Date();
-    setActiveMonth(
-      new Date(today.getFullYear(), today.getMonth(), 1)
-    );
+    setActiveMonth(new Date(today.getFullYear(), today.getMonth(), 1));
 
     setTimeout(() => {
-      document
-        .getElementById("calendar-today")
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
+      document.getElementById("calendar-today")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
     }, 120);
+  };
+
+  const handleLeagueChange = (event) => {
+    const nextLeague = event.target.value;
+    const nextCategories = categoriesForLeague(teams, nextLeague);
+
+    setLeagueFilter(nextLeague);
+    setDivisionFilter("all");
+    setTeamFilter("all");
+
+    if (nextCategories.length > 1 && nextCategories.includes("herrer")) {
+      setCategoryFilter("herrer");
+    } else {
+      setCategoryFilter("all");
+    }
+  };
+
+  const handleCategoryChange = (event) => {
+    setCategoryFilter(event.target.value);
+    setDivisionFilter("all");
+    setTeamFilter("all");
+  };
+
+  const handleDivisionChange = (event) => {
+    setDivisionFilter(event.target.value);
+    setTeamFilter("all");
   };
 
   return (
@@ -429,54 +694,100 @@ function MonthCalendar({ teams }) {
           <button onClick={() => changeMonth(-1)}>←</button>
           <strong>{formatMonth(activeMonth)}</strong>
           <button onClick={() => changeMonth(1)}>→</button>
-          <button
-            className="today-button"
-            onClick={goToToday}
-          >
+          <button className="today-button" onClick={goToToday}>
             IDAG
           </button>
         </div>
       </div>
 
-      <div className="calendar-view-switcher">
-        <button
-          className={displayMode === "calendar" ? "active" : ""}
-          onClick={() => setDisplayMode("calendar")}
-        >
-          Kalender
-        </button>
+      {!isMobile && (
+        <div className="calendar-view-switcher">
+          <button
+            className={displayMode === "calendar" ? "active" : ""}
+            onClick={() => setDisplayMode("calendar")}
+          >
+            Kalender
+          </button>
 
-        <button
-          className={displayMode === "list" ? "active" : ""}
-          onClick={() => setDisplayMode("list")}
-        >
-          Liste
-        </button>
-      </div>
+          <button
+            className={displayMode === "list" ? "active" : ""}
+            onClick={() => setDisplayMode("list")}
+          >
+            Liste
+          </button>
+        </div>
+      )}
 
       <div className="calendar-filters">
         <div className="filter-field">
-          <label> Liga </label>
-          <select value={leagueFilter} onChange={(e) => setLeagueFilter(e.target.value)}>
+          <label htmlFor="calendarLeagueFilter">Liga</label>
+          <select
+            id="calendarLeagueFilter"
+            value={leagueFilter}
+            onChange={handleLeagueChange}
+          >
             <option value="all">Alle ligaer</option>
             {leagues.map((league) => (
-              <option key={league} value={league}>{league}</option>
+              <option key={league} value={league}>
+                {league}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {showCategoryFilter && (
+          <div className="filter-field">
+            <label htmlFor="calendarCategoryFilter">Herrer / Damer</label>
+            <select
+              id="calendarCategoryFilter"
+              value={categoryFilter}
+              onChange={handleCategoryChange}
+            >
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {categoryLabel(category)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="filter-field">
+          <label htmlFor="calendarDivisionFilter">Række</label>
+          <select
+            id="calendarDivisionFilter"
+            value={divisionFilter}
+            onChange={handleDivisionChange}
+          >
+            <option value="all">
+              {leagueFilter === "all" ? "Alle rækker" : "Alle relevante rækker"}
+            </option>
+            {divisions.map((division) => (
+              <option key={division} value={division}>
+                {division}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="filter-field">
-          <label> Hold </label>
-          <select value={teamFilter} onChange={(e) => setTeamFilter(e.target.value)}>
-            <option value="all">Alle EPF-hold</option>
+          <label htmlFor="calendarTeamFilter">Hold</label>
+          <select
+            id="calendarTeamFilter"
+            value={teamFilter}
+            onChange={(event) => setTeamFilter(event.target.value)}
+          >
+            <option value="all">Alle relevante EPF-hold</option>
             {teamOptions.map((team) => (
-              <option key={team.id} value={team.id}>{team.name}</option>
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      {displayMode === "list" && (
+      {!isMobile && displayMode === "list" && (
         <div className="calendar-list-view">
           {filteredMatches.length ? (
             filteredMatches.map((match) => (
@@ -487,6 +798,8 @@ function MonthCalendar({ teams }) {
                   match,
                   activeMonth,
                   leagueFilter,
+                  categoryFilter,
+                  divisionFilter,
                   teamFilter,
                   displayMode
                 )}
@@ -502,18 +815,12 @@ function MonthCalendar({ teams }) {
                     {match.teamName} vs. {match.away}
                   </strong>
 
-                  <span>
-                    {match.division || match.league}
-                  </span>
+                  <span>{match.division || match.league}</span>
 
-                  <small>
-                    ⌖ {match.location}
-                  </small>
+                  <small>⌖ {match.location}</small>
                 </div>
 
-                <div className="calendar-list-arrow">
-                  →
-                </div>
+                <div className="calendar-list-arrow">→</div>
               </Link>
             ))
           ) : (
@@ -525,7 +832,11 @@ function MonthCalendar({ teams }) {
         </div>
       )}
 
-      <div className={`desktop-calendar ${displayMode === "list" ? "hidden-calendar-view" : ""}`}>
+      <div
+        className={`desktop-calendar ${
+          displayMode === "list" ? "hidden-calendar-view" : ""
+        }`}
+      >
         <div className="calendar-weekdays">
           {["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"].map((day) => (
             <div key={day}>{day}</div>
@@ -541,26 +852,32 @@ function MonthCalendar({ teams }) {
               cell.date.getDate() === now.getDate();
 
             return (
-            <div
-              id={isToday ? "calendar-today" : undefined}
-              key={cell.date.toISOString()}
-              className={`calendar-cell ${cell.inMonth ? "" : "outside-month"} ${isToday ? "today-cell" : ""}`}
-            >
-              <div className="calendar-day-number">{cell.date.getDate()}</div>
+              <div
+                id={isToday ? "calendar-today" : undefined}
+                key={cell.date.toISOString()}
+                className={`calendar-cell ${
+                  cell.inMonth ? "" : "outside-month"
+                } ${isToday ? "today-cell" : ""}`}
+              >
+                <div className="calendar-day-number">
+                  {cell.date.getDate()}
+                </div>
 
-              <div className="calendar-day-matches">
-                {cell.matches.map((match) => (
-                  <MatchBlock
-                    key={match.key}
-                    match={match}
-                    activeMonth={activeMonth}
-                    leagueFilter={leagueFilter}
-                    teamFilter={teamFilter}
-                    displayMode={displayMode}
-                  />
-                ))}
+                <div className="calendar-day-matches">
+                  {cell.matches.map((match) => (
+                    <MatchBlock
+                      key={match.key}
+                      match={match}
+                      activeMonth={activeMonth}
+                      leagueFilter={leagueFilter}
+                      categoryFilter={categoryFilter}
+                      divisionFilter={divisionFilter}
+                      teamFilter={teamFilter}
+                      displayMode={displayMode}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
             );
           })}
         </div>
@@ -577,8 +894,10 @@ function MonthCalendar({ teams }) {
                 match,
                 activeMonth,
                 leagueFilter,
+                categoryFilter,
+                divisionFilter,
                 teamFilter,
-                displayMode
+                "calendar"
               )}
             >
               <div className="agenda-date">
@@ -587,7 +906,9 @@ function MonthCalendar({ teams }) {
               </div>
 
               <div className="agenda-main">
-                <strong>{match.teamName} vs. {match.away}</strong>
+                <strong>
+                  {match.teamName} vs. {match.away}
+                </strong>
                 <span>{match.division || match.league}</span>
                 <small>⌖ {match.location}</small>
               </div>
@@ -630,8 +951,9 @@ export default function LeagueOverview({ teams }) {
     }
 
     const query = params.toString();
-    const nextUrl =
-      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash || ""}`;
+    const nextUrl = `${window.location.pathname}${
+      query ? `?${query}` : ""
+    }${window.location.hash || ""}`;
 
     window.history.replaceState({}, "", nextUrl);
   }, [tab, tabHydrated]);
