@@ -2,22 +2,128 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
+const COPENHAGEN_TIME_ZONE = "Europe/Copenhagen";
+
+function parseMatchDate(value) {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    return {
+      date: value,
+      sortValue: value.getTime(),
+      hasTime: !(value.getHours() === 0 && value.getMinutes() === 0),
+      wallClock: false
+    };
+  }
+
+  const raw = String(value).trim();
+
+  // RankedIn uses Danish/European dates: DD/MM/YYYY HH:mm.
+  // Parse these explicitly so 06/09/2026 becomes 6 September,
+  // not 9 June in browsers that assume MM/DD/YYYY.
+  const european = raw.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+
+  if (european) {
+    const [, day, month, year, hour = "0", minute = "0", second = "0"] = european;
+    const timestamp = Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return null;
+
+    const hasExplicitTime = Boolean(european[4]);
+    const hasTime =
+      hasExplicitTime &&
+      !(Number(hour) === 0 && Number(minute) === 0);
+
+    return {
+      date,
+      sortValue: timestamp,
+      hasTime,
+      wallClock: true
+    };
+  }
+
+  // RankedIn can also return ISO-looking values without timezone information.
+  // Treat those as a wall-clock value and avoid browser timezone conversion.
+  const localIso = raw.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?$/
+  );
+
+  if (localIso) {
+    const [, year, month, day, hour = "0", minute = "0", second = "0"] = localIso;
+    const timestamp = Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return null;
+
+    const hasExplicitTime = Boolean(localIso[4]);
+    const hasTime =
+      hasExplicitTime &&
+      !(Number(hour) === 0 && Number(minute) === 0);
+
+    return {
+      date,
+      sortValue: timestamp,
+      hasTime,
+      wallClock: true
+    };
+  }
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const timeMatch = raw.match(/[T ](\d{1,2}):(\d{2})/);
+  const hasTime =
+    Boolean(timeMatch) &&
+    !(Number(timeMatch?.[1]) === 0 && Number(timeMatch?.[2]) === 0);
+
+  return {
+    date,
+    sortValue: date.getTime(),
+    hasTime,
+    wallClock: false
+  };
+}
+
 function formatDate(value) {
   if (!value) return { date: "Dato ikke angivet", time: "" };
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return { date: String(value), time: "" };
+  const parsed = parseMatchDate(value);
+  if (!parsed) return { date: String(value), time: "" };
+
+  const timeZone = parsed.wallClock ? "UTC" : COPENHAGEN_TIME_ZONE;
 
   return {
     date: new Intl.DateTimeFormat("da-DK", {
+      timeZone,
       day: "2-digit",
       month: "short",
       year: "numeric"
-    }).format(date),
-    time: new Intl.DateTimeFormat("da-DK", {
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(date)
+    }).format(parsed.date),
+    time: parsed.hasTime
+      ? new Intl.DateTimeFormat("da-DK", {
+          timeZone,
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(parsed.date)
+      : ""
   };
 }
 
@@ -195,8 +301,6 @@ function MatchCard({ match, selectedTeam, defaultOpen = false }) {
     </article>
   );
 }
-
-
 
 function StandingTeamDetails({ teamId, fallbackName, rankedInUrl }) {
   const [data, setData] = useState(null);
@@ -496,8 +600,8 @@ export default function TeamDetails({ data, focusMatchId = "" }) {
 
   const matches = useMemo(() => {
     return [...data.matches].sort((a, b) => {
-      const da = new Date(a.date || 0).getTime();
-      const db = new Date(b.date || 0).getTime();
+      const da = parseMatchDate(a.date)?.sortValue ?? Number.POSITIVE_INFINITY;
+      const db = parseMatchDate(b.date)?.sortValue ?? Number.POSITIVE_INFINITY;
       return da - db;
     });
   }, [data.matches]);
