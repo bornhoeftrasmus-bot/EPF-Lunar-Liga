@@ -63,24 +63,128 @@ function categoryLabel(value) {
   return value;
 }
 
+function parseOverviewMatchDate(value) {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    return {
+      date: value,
+      sortValue: value.getTime(),
+      hasTime: !(value.getHours() === 0 && value.getMinutes() === 0),
+      wallClock: false
+    };
+  }
+
+  const raw = String(value).trim();
+
+  // RankedIn uses Danish/European dates: DD/MM/YYYY HH:mm.
+  // Parse these explicitly so 10/09/2026 is 10 September,
+  // never October 9 in browsers that assume MM/DD/YYYY.
+  const european = raw.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+
+  if (european) {
+    const [, day, month, year, hour = "0", minute = "0", second = "0"] = european;
+    const timestamp = Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return {
+      date,
+      sortValue: timestamp,
+      hasTime:
+        Boolean(european[4]) &&
+        !(Number(hour) === 0 && Number(minute) === 0),
+      wallClock: true
+    };
+  }
+
+  // RankedIn can also return ISO-looking values without timezone information.
+  // Treat them as local wall-clock values instead of allowing browser conversion.
+  const localIso = raw.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?$/
+  );
+
+  if (localIso) {
+    const [, year, month, day, hour = "0", minute = "0", second = "0"] = localIso;
+    const timestamp = Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return {
+      date,
+      sortValue: timestamp,
+      hasTime:
+        Boolean(localIso[4]) &&
+        !(Number(hour) === 0 && Number(minute) === 0),
+      wallClock: true
+    };
+  }
+
+  // Values with an explicit timezone (Z, +01:00, +02:00, etc.)
+  // are safe to parse natively and are displayed in Copenhagen time.
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const timeMatch = raw.match(/[T ](\d{1,2}):(\d{2})/);
+
+  return {
+    date,
+    sortValue: date.getTime(),
+    hasTime:
+      Boolean(timeMatch) &&
+      !(Number(timeMatch?.[1]) === 0 && Number(timeMatch?.[2]) === 0),
+    wallClock: false
+  };
+}
+
 function matchDateValue(match) {
-  if (!match?.date) return Number.POSITIVE_INFINITY;
-  const d = new Date(match.date);
-  return Number.isNaN(d.getTime()) ? Number.POSITIVE_INFINITY : d.getTime();
+  const parsed = parseOverviewMatchDate(match?.date);
+  return parsed?.sortValue ?? Number.POSITIVE_INFINITY;
 }
 
 function formatNextMatchDate(value) {
   if (!value) return "Ingen planlagt kamp";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value);
 
-  return new Intl.DateTimeFormat("da-DK", {
+  const parsed = parseOverviewMatchDate(value);
+  if (!parsed) return String(value);
+
+  const timeZone = parsed.wallClock ? "UTC" : "Europe/Copenhagen";
+
+  const dateText = new Intl.DateTimeFormat("da-DK", {
+    timeZone,
     day: "2-digit",
     month: "short",
-    year: "numeric",
+    year: "numeric"
+  }).format(parsed.date);
+
+  if (!parsed.hasTime) return dateText;
+
+  const timeText = new Intl.DateTimeFormat("da-DK", {
+    timeZone,
     hour: "2-digit",
     minute: "2-digit"
-  }).format(d);
+  }).format(parsed.date);
+
+  return `${dateText}, ${timeText}`;
 }
 
 function NextMatch({ team }) {
