@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import TeamDetails from "@/components/TeamDetails";
 import { getTeamDetails, getTeamHomepage } from "@/lib/rankedin";
+import styles from "./team-shell.module.css";
 
 export const revalidate = 60;
 
@@ -92,13 +93,22 @@ function playersInRankedInOrder(homepage, fallbackPlayers = []) {
   return rawPlayers.map((player) => rankedPlayer(player, fallbackPlayers));
 }
 
+function safeReturnTo(value) {
+  if (
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//")
+  ) {
+    return value;
+  }
+
+  return "/";
+}
+
 export default async function TeamPage({ params, searchParams }) {
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
-  const returnTo =
-    typeof resolvedSearchParams?.returnTo === "string"
-      ? resolvedSearchParams.returnTo
-      : "/";
+  const returnTo = safeReturnTo(resolvedSearchParams?.returnTo);
 
   const focusMatch =
     typeof resolvedSearchParams?.focusMatch === "string"
@@ -123,56 +133,96 @@ export default async function TeamPage({ params, searchParams }) {
     data.team.players
   );
 
+  const cameFromCalendar =
+    returnTo.includes("view=calendar") ||
+    returnTo.includes("calendarView=");
+
+  const teamsHref = cameFromCalendar ? "/" : returnTo;
+  const calendarHref = cameFromCalendar ? returnTo : "/?view=calendar";
+
   return (
-    <main className="page-shell team-page">
-      <Link href={returnTo} className="back-link">← Alle EPF-hold</Link>
+    <main className="page-shell">
+      <section className="hero">
+        <div className="eyebrow">Esbjerg Padel Forening</div>
+        <h1>EPF hold & ligaer</h1>
+        <p>
+          Følg foreningens aktive hold på tværs af ligaer. Søg efter spillere,
+          hold, rækker eller ligaer, og se kampe, kampdetaljer og stillinger
+          samlet ét sted.
+        </p>
+      </section>
 
-      <section className="team-hero">
-        <div>
-          <div className="eyebrow">{data.team.league || "Liga"}</div>
-          <h1>{data.team.name}</h1>
-          <div className="team-subline">
-            {data.team.division && <span>{data.team.division}</span>}
-            {data.team.region && <span>· {data.team.region}</span>}
+      <nav className={styles.overviewTabs} aria-label="EPF liga navigation">
+        <Link
+          href={teamsHref}
+          className={`${styles.tab} ${!cameFromCalendar ? styles.active : ""}`}
+        >
+          Hold
+        </Link>
+        <Link
+          href={calendarHref}
+          className={`${styles.tab} ${cameFromCalendar ? styles.active : ""}`}
+        >
+          Kalender
+        </Link>
+      </nav>
+
+      <div className={styles.detailView}>
+        <Link href={returnTo} className={styles.backLink}>
+          ← Tilbage til oversigten
+        </Link>
+
+        <section className={`team-hero ${styles.teamHeroCard}`}>
+          <div>
+            <div className="eyebrow">{data.team.league || "Liga"}</div>
+            <h1>{data.team.name}</h1>
+            <div className="team-subline">
+              {data.team.division && <span>{data.team.division}</span>}
+              {data.team.region && <span>· {data.team.region}</span>}
+            </div>
           </div>
-        </div>
 
-        <div className="team-hero-venue">
-          <small>Hjemmebane</small>
-          <strong>{data.team.homeCourt || "Ikke angivet"}</strong>
-          {data.team.homeCourtAddress && <span>{data.team.homeCourtAddress}</span>}
-        </div>
-      </section>
+          <div className="team-hero-venue">
+            <small>Hjemmebane</small>
+            <strong>{data.team.homeCourt || "Ikke angivet"}</strong>
+            {data.team.homeCourtAddress && <span>{data.team.homeCourtAddress}</span>}
+          </div>
+        </section>
 
-      <section className="roster-strip">
-        <div className="card-section-title">
-          Spillere <span>{orderedPlayers.length}</span>
-        </div>
+        <section className="roster-strip">
+          <div className="card-section-title">
+            Spillere <span>{orderedPlayers.length}</span>
+          </div>
 
-        <div className="player-list compact">
-          {orderedPlayers.map((player, index) =>
-            player.url ? (
-              <a
-                key={`${player.id}-${player.name}`}
-                className="player-chip"
-                href={player.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <span>{index + 1}. {player.name}</span>
-                <span className="external">↗</span>
-              </a>
-            ) : (
-              <div key={`${player.id}-${player.name}`} className="player-chip">
-                {index + 1}. {player.name}
-              </div>
-            )
-          )}
-        </div>
-      </section>
+          <div className="player-list compact">
+            {orderedPlayers.map((player, index) =>
+              player.url ? (
+                <a
+                  key={`${player.id}-${player.name}`}
+                  className="player-chip"
+                  href={player.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span>{index + 1}. {player.name}</span>
+                  <span className="external">↗</span>
+                </a>
+              ) : (
+                <div key={`${player.id}-${player.name}`} className="player-chip">
+                  {index + 1}. {player.name}
+                </div>
+              )
+            )}
+          </div>
+        </section>
 
-      <TeamDetails data={data} focusMatchId={focusMatch} />
-      <div className="version-tag team-version">EPF Liga v26</div>
+        <TeamDetails data={data} focusMatchId={focusMatch} />
+      </div>
+
+      <footer className="footer">
+        Data hentes automatisk fra Rankedin. Kun hold med Home Club “Esbjerg Padel Forening” vises.
+        <div className="version-tag">EPF Liga v26</div>
+      </footer>
     </main>
   );
 }
