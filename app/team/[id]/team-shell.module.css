@@ -1,0 +1,85 @@
+.overviewTabs {
+  display: inline-flex;
+  gap: 6px;
+  margin: 0 0 22px;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(214, 204, 187, 0.42);
+}
+
+.tab {
+  display: inline-flex;
+  min-width: 130px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 10px;
+  color: var(--charcoal);
+  background: transparent;
+  text-decoration: none;
+  font-weight: 900;
+  transition: 0.16s ease;
+}
+
+.tab:hover {
+  background: rgba(152, 180, 223, 0.18);
+}
+
+.active,
+.active:hover {
+  color: #fff;
+  background: var(--royal);
+}
+
+.detailView {
+  position: relative;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px 2px;
+  color: var(--royal);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.teamHeroCard {
+  margin-bottom: 18px;
+  padding: 26px;
+  border: 1px solid rgba(44, 41, 42, 0.11);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow);
+}
+
+.teamHeroCard h1 {
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+@media (max-width: 580px) {
+  .overviewTabs {
+    display: flex;
+    width: 100%;
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .teamHeroCard {
+    padding: 19px;
+  }
+
+  .teamHeroCard h1 {
+    font-size: 34px;
+  }
+}
